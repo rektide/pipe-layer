@@ -1,4 +1,4 @@
-var XClientFilter = function(store) {
+var XPipeFilter = function(store) {
 	
 	this.store = store;
 	if(!this.store) this.store = new Object();
@@ -14,22 +14,22 @@ var XClientFilter = function(store) {
 		// link context and user store
 		ctx.user = user;
 	
-		// retrieve clientId and seq
+		// retrieve pipeId and seq
 		var req = ctx.request;
-		var client,seq,clientId = req.headers["X-Client-Id"];
+		var pipe,seq,pipeId = req.headers["X-Pipe-Id"];
 		
-		if(!clientId) {
-			// no clientId; is it being created?
-			clientId = req.headers["X-Create-Client-Id"];
-			if(!clientId)
-				return this.failure(ctx,"no x-client-id data found");
+		if(!pipeId) {
+			// no pipeId; is it being created?
+			pipeId = req.headers["X-Create-Pipe-Id"];
+			if(!pipeId)
+				return this.failure(ctx,"no X-Pipe-Id data found");
 			
 			seq = 1;
-			client = user.clients[clientId] = this.createClient(ctx,clientId);
+			pipe = user.pipes[pipeId] = this.createPipe(ctx,pipeId);
 		} else {
-			client = user.clients[clientId];
-			if(!client)
-				return this.failure(ctx,"client not found");
+			pipe = user.pipes[pipeId];
+			if(!pipe)
+				return this.failure(ctx,"pipe not found");
 			
 	 		seq = req.headers["X-Seq"];
 			if(!seq)
@@ -37,12 +37,12 @@ var XClientFilter = function(store) {
 			// todo: range check sequence?
 		}
 
-		ctx.client = client;
+		ctx.pipe = pipe;
 		ctx.seq = seq;
 
 		// enqueue reply, provide a proxy for this context
 		user.responses.push(ctx.response);
-		ctx.response = new XClientResponse(ctx);
+		ctx.response = new XPipeResponse(ctx);
 		
 		return false;
 	}
@@ -57,18 +57,18 @@ var XClientFilter = function(store) {
 		user.created = new Date();
 		user.cookie = cookie;
 		user.responses = new Array();
-		user.clients = new Object();
+		user.pipes = new Object();
 		
 		return user;
 	}
 	
-	this.createClient() = function(ctx,clientId) {
+	this.createPipe() = function(ctx,pipeId) {
 		
-		var client = new Object();
-		client.clientId = clientId;
-		client.seq = 1;
-		client.deferred = new Array();
-		return client;
+		var pipe = new Object();
+		pipe.pipeId = pipeId;
+		pipe.seq = 1;
+		pipe.deferred = new Array();
+		return pipe;
 	}
 	
 	this.failure = function(ctx,cause) {
@@ -85,15 +85,15 @@ var XClientFilter = function(store) {
 }
 
 
-var ClientResponse = function(ctx,seq) {
+var PipeResponse = function(ctx,seq) {
 		
 	this.ctx = ctx;
 	this.response = null;
 	
 	this.sendHeader = function(statusCode, headers) {
 		
-		// ensure XClient headers.
-		headers["X-Client-Id"] = ctx.client.clientId;
+		// ensure XPipe headers.
+		headers["X-Pipe-Id"] = ctx.pipe.pipeId;
 		headers["X-Seq"] = ctx.seq;
 
 		if(!this.isTop())
@@ -137,12 +137,12 @@ var ClientResponse = function(ctx,seq) {
 		}
 		
 		this.response.finish();
-		this.ctx.client.seq++;
+		this.ctx.pipe.seq++;
 	}
 
 	this.isTop = function()
 	{
-		return this.ctx.seq == this.ctx.client.seq;
+		return this.ctx.seq == this.ctx.pipe.seq;
 	}
 
 	this.despool = function()

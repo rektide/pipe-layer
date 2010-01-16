@@ -12,7 +12,7 @@ var SessionCookieFilter = function() {
 			return this.returnCookie(ctx);
 
 		// build context and continue chain	
-		ctx.cookie = cookie;	
+		ctx.cookie = cookie;
 		return false;
 	}
 	
