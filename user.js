@@ -27,6 +27,11 @@ var UserStoreFilter = function(store) {
 		user.responses = new Array();
 		user.pipes = new Object();
 		
+		if(ctx.system_headers)
+			user.system_headers = ctx.system_headers;
+		else
+			user.system_headers = {};
+		
 		return user;
 	}
 }

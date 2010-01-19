@@ -20,13 +20,13 @@ var SessionCookieFilter = function() {
 			cookieCrumbs[i] = new String(Math.random()).slice(2);
 		var cookie = cookieCrumbs.join("");
 
-		// return cookie	
-		var resp = ctx.response;	
-		resp.sendHeader(200, {"Content-Type": "text/plain", "Set-Cookie:": cookie});
-		resp.sendBody("");
-		resp.finish();
-	
-		return true;
+		// return cookie
+		var headers = ctx.system_headers;
+		if(!headers)
+			headers = ctx.system_headers = {};
+		headers["Set-Cookie": cookie];
+		
+		return false;
 	}
 
 

@@ -69,9 +69,17 @@ var PipeResponse = function(ctx,seq) {
 			this.statusCode = statusCode;
 			return;
 		}
-	
+
+		var user = this.ctx.user;
+		
+		// load all system headers
+		var system = user.system_headers;
+		user.system_headers = {};
+		for(header in system):
+			headers[header] = system[header];
+		
 		// retrieve most recent response
-		var response = this.response = this.ctx.user.responses.shift();
+		var response = this.response = user.responses.shift();
 		// and send
 		response.sendHeader(statusCode,headers);
 	}
