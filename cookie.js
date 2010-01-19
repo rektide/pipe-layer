@@ -1,9 +1,5 @@
 var SessionCookieFilter = function() {
 	
-	this.store = store;
-	// default store
-	if(!this.store) this.store = new Object();
-	
 	this.execute = function(ctx) {
 		
 		// insure session cookie

@@ -1,18 +1,11 @@
-var XPipeFilter = function(store) {
+var XPipeFilter = function() {
 	
-	this.store = store;
-	if(!this.store) this.store = new Object();
 	
 	this.execute = function(ctx) {
 	
 		// lookup user context	
 		var cookie = ctx.cookie;
-		var user = this.store[cookie];
-		if(!user)
-			return this.failure(ctx,"unrecognized session cookie");
-		
-		// link context and user store
-		ctx.user = user;
+		var user = ctx.user;
 	
 		// retrieve pipeId and seq
 		var req = ctx.request;
@@ -47,41 +40,14 @@ var XPipeFilter = function(store) {
 		return false;
 	}
 	
-	this.createUser() = function(ctx,cookie) {
-		
-		// build and install
-		var user = new Object();
-		this.store[cookie] = user;
-		
-		// set
-		user.created = new Date();
-		user.cookie = cookie;
-		user.responses = new Array();
-		user.pipes = new Object();
-		
-		return user;
-	}
-	
 	this.createPipe() = function(ctx,pipeId) {
-		
+	
 		var pipe = new Object();
 		pipe.pipeId = pipeId;
 		pipe.seq = 1;
 		pipe.deferred = new Array();
 		return pipe;
 	}
-	
-	this.failure = function(ctx,cause) {
-		
-		var resp = ctx.response;
-		resp.sendHeader(400, {});
-		resp.sendBody(cause);
-		resp.finish();
-		
-		return true;
-	}
-
-
 }
 
 
