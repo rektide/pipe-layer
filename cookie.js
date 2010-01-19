@@ -5,14 +5,14 @@ var SessionCookieFilter = function() {
 		// insure session cookie
 		var cookie = ctx.request.headers["Cookie"];
 		if(!cookie)
-			return this.returnCookie(ctx);
+			cookie = this.buildCookie(ctx);
 
 		// build context and continue chain	
 		ctx.cookie = cookie;
 		return false;
 	}
 	
-	this.returnCookie = function(ctx) {
+	this.buildCookie = function(ctx) {
 		
 		// generate cookie
 		var cookieCrumbs = [];
@@ -20,13 +20,14 @@ var SessionCookieFilter = function() {
 			cookieCrumbs[i] = new String(Math.random()).slice(2);
 		var cookie = cookieCrumbs.join("");
 
-		// return cookie
+		// set cookie
 		var headers = ctx.system_headers;
 		if(!headers)
 			headers = ctx.system_headers = {};
-		headers["Set-Cookie": cookie];
+		headers["Set-Cookie"] = cookie;
 		
-		return false;
+		// return cookie
+		return cookie
 	}
 
 

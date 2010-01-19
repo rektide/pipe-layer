@@ -10,7 +10,10 @@ var UserStoreFilter = function(store) {
 		var user = this.store[cookie];
 		
 		if(!user) 
+		{
 			user = this.store[cookie] = this.createUser(ctx,cookie);
+			ctx.isNewUser = true;
+		}
 		
 		ctx.user = user;
 		return false;
