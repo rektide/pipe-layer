@@ -45,6 +45,7 @@ var XPipeFilter = function() {
 		var pipe = new Object();
 		pipe.pipeId = pipeId;
 		pipe.seq = 1;
+		pipe.rseq = 1;
 		pipe.deferred = new Array();
 		return pipe;
 	}
