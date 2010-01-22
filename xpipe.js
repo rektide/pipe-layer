@@ -74,10 +74,7 @@ var PipeResponse = function(ctx,seq) {
 		var user = this.ctx.user;
 		
 		// load all system headers
-		var system = user.system_headers;
-		user.system_headers = {};
-		for(header in system):
-			headers[header] = system[header];
+		this.import_system.headers(user,headers);
 		
 		// retrieve most recent response
 		var response = this.response = user.responses.shift();

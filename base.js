@@ -10,4 +10,12 @@ var BaseFilter = function() {
 		return true;
 	}
 
+	this.import_system_headers = function(user,headers)
+	{
+		var system_headers = user.system_headers;
+		user.system_headers = {};
+		for(var header in system_headers)
+			headers[header] = system_headers[header];
+	
+	}
 }
