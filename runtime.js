@@ -1,20 +1,24 @@
 var http = require("http"),
     sys = require("sys"),
+    posix = require("posix"),
     evalFile = require("./eval_file"),
     inherit = require("./inherit");
-
-
 
 var loadFiles = [
 	"chain.js", "base.js",
 	"cookie.js", "user.js", "xpipe.js", "reverse.js"
 ];
 
+var readLength = 8 * 1024 * 1024;
 for(var f in loadFiles)
 {
-	sys.print("eval "+loadFiles[f]+"\n");
-	evalFile.evalFile("./"+loadFiles[f]);
-}
+	var filename = loadFiles[f];
+	sys.print("evaluating "+filename+"\n");
+	
+	var file = posix.open(""+filename, process.O_RDONLY, 0).wait();
+	var data = posix.read(file, readLength).wait()[0];
+	var context = eval(data,context);
+};
 
 
 var userStore = new Object();
