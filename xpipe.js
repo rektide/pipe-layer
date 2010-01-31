@@ -32,7 +32,7 @@ var XPipeFilter = function() {
 
 		ctx.pipe = pipe;
 		ctx.seq = seq;
-
+		
 		// enqueue reply, provide a proxy for this context
 		user.responses.push(ctx.response);
 		ctx.response = new XPipeResponse(ctx);
@@ -40,7 +40,7 @@ var XPipeFilter = function() {
 		return false;
 	}
 	
-	this.createPipe() = function(ctx,pipeId) {
+	this.createPipe = function(ctx,pipeId) {
 	
 		var pipe = new Object();
 		pipe.pipeId = pipeId;
@@ -52,7 +52,7 @@ var XPipeFilter = function() {
 }
 
 
-var PipeResponse = function(ctx,seq) {
+var XPipeResponse = function(ctx,seq) {
 		
 	this.ctx = ctx;
 	this.response = null;
