@@ -19,7 +19,7 @@ var UserStoreFilter = function(store) {
 		return false;
 	}
 	
-	this.createUser() = function(ctx,cookie) {
+	this.createUser = function(ctx,cookie) {
 		
 		// build and install
 		var user = new Object();

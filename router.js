@@ -1,5 +1,5 @@
 
-# router is just command with a particular semantic meaning, and a weak implication that it probably delegates to other command patterns
+// router is just command with a particular semantic meaning, and a weak implication that it probably delegates to other command patterns
 
 Router = function()
 {
