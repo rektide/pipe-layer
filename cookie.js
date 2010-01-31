@@ -1,4 +1,6 @@
 var SessionCookieFilter = function() {
+
+	this.name = "SessionCookieFilter";
 	
 	this.execute = function(ctx) {
 		
@@ -30,5 +32,6 @@ var SessionCookieFilter = function() {
 		return cookie
 	}
 
+};
 
-}
+inherit.inherit(SessionCookieFilter,DefaultBaseFilter);

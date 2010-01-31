@@ -1,4 +1,6 @@
 var BaseFilter = function() {
+
+	this.name = "BaseFilter";
 	
 	this.failure = function(ctx,cause) {
 		
@@ -19,3 +21,5 @@ var BaseFilter = function() {
 	
 	}
 }
+
+DefaultBaseFilter = new BaseFilter();

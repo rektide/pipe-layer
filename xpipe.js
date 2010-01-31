@@ -1,5 +1,6 @@
 var XPipeFilter = function() {
-	
+
+	this.name = "XPipeFilter";	
 	
 	this.execute = function(ctx) {
 	
@@ -51,6 +52,7 @@ var XPipeFilter = function() {
 	}
 }
 
+inherit.inherit(XPipeFilter,DefaultBaseFilter);
 
 var XPipeResponse = function(ctx,seq) {
 		

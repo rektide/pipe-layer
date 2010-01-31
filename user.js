@@ -1,10 +1,12 @@
 var UserStoreFilter = function(store) {
+
+	this.name = "UserStoreFilter";
 	
 	this.store = store;
 	if(!this.store) 
 		this.store = new Object();
 
-	var execute = function(ctx) {
+	this.execute = function(ctx) {
 	
 		var cookie = ctx.cookie;
 		var user = this.store[cookie];
@@ -38,3 +40,5 @@ var UserStoreFilter = function(store) {
 		return user;
 	}
 }
+
+inherit.inherit(UserStoreFilter,DefaultBaseFilter);
