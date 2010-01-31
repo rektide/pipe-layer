@@ -1,7 +1,7 @@
-var PipeContext = function(request,reply){
+var PipeContext = function(request,response){
 
 	this.request = request;
-	this.reply = reply;
+	this.response = response;
 
 }
 
@@ -10,11 +10,13 @@ var Chain = function()
 	this.execute = function(ctx) {
 		var filterStack = new Array(), saveResult = false, saveErr, filter;
 		for (var command in this) {
-			if(!isNumeric(command)) continue;
+			if(isNaN(command)) continue;
 			try {
-				if(command["postProcess"] != null)
-					filterStack.push(command);
-				saveResult = command.execute(ctx);
+				var target = this[command];
+				sys.print("chain "+target.name+"\n");
+				if(target["postProcess"] != null)
+					filterStack.push(target);
+				saveResult = target.execute(ctx);
 				if(saveResult)
 					break;
 			}
@@ -38,3 +40,5 @@ var Chain = function()
 		return saveResult;
 	}
 }
+
+var DefaultChain = new Chain();
