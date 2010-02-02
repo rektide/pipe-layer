@@ -60,18 +60,18 @@ var XPipeFilter = function() {
 
 inherit.inherit(XPipeFilter,DefaultBaseFilter);
 
-var XPipeResponse = function(ctx,seq) {
+var XPipeResponse = function(ctx) {
 		
 	this.ctx = ctx;
 	this.response = null;
 	
 	this.sendHeader = function(statusCode, headers) {
 		
-		//sys.debug("xpipe sendHeader\n");
+		//sys.debug("xpipe sendHeader ");
 			
 		// ensure XPipe headers.
-		headers["X-Pipe-Id"] = ctx.pipe.pipeId;
-		headers["X-Seq"] = ctx.seq;
+		headers["X-Pipe-Id"] = this.ctx.pipe.pipeId;
+		headers["X-Seq"] = this.ctx.seq;
 
 		if(!this.isTop())
 		{
@@ -95,7 +95,7 @@ var XPipeResponse = function(ctx,seq) {
 	
 	this.sendBody = function(chunk, encoding) {
 	
-		//sys.debug("xpipe sendBody\n");
+		//sys.debug("xpipe sendBody");
 		
 		if(!this.isTop()) {
 			this.chunks.push(chunk);
@@ -135,6 +135,7 @@ var XPipeResponse = function(ctx,seq) {
 
 	this.despool = function()
 	{
+		//sys.debug("DESPOOL");
 		this.sendHeaders(this.statusCode,this.headers);
 		this.headers = null;
 		
