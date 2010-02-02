@@ -37,9 +37,14 @@ http.createServer(function(request,response) {
 	
 	var pc = new PipeContext(request,response);
 	var chain = pc.chain = new Chain(initialChain);
-	//chain.chainResult.addListener( function(ctx,result){
+	//chain.chainResult.addCallback( function(ctx,result){
 	//	sys.debug("result!");
 	//});
+	
+	chain.result.addErrback( function(ctx,err){
+		sys.debug("error "+err);
+	});
+
 	chain.execute(pc);
 	
 }).listen(8765);
