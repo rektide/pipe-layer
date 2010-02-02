@@ -1,12 +1,12 @@
 var http = require("http"),
-    sys = require("sys"),
+    path = require("path"),
     posix = require("posix"),
-    evalFile = require("./eval_file"),
+    sys = require("sys"),
     inherit = require("./inherit");
 
 var loadFiles = [
 	"chain.js", "base.js",
-	"cookie.js", "user.js", "xpipe.js", "reverse.js"
+	"cookie.js", "user.js", "xpipe.js", "reverse.js", "fs.js"
 ];
 
 var readLength = 8 * 1024 * 1024;
@@ -27,7 +27,8 @@ var chain = [
 	new SessionCookieFilter(),
 	new UserStoreFilter(userStore), 
 	new XPipeFilter(),
-	new ReverseHttpFilter()
+	new ReverseHttpFilter(userStore,userDomainMatch),
+	new FileSystemFilter("./tests/")
 ];
 process.mixin(chain,new Chain());
 
