@@ -10,11 +10,16 @@ var XPipeFilter = function() {
 	
 		// retrieve pipeId and seq
 		var req = ctx.request;
-		var pipe,seq,pipeId = req.headers["X-Pipe-Id"];
+		var pipe,seq,pipeId = req.headers["x-pipe-id"];
+
+		for(var header in req.headers)
+		{
+			//sys.debug("header "+header+": "+req.headers[header]);
+		}
 		
 		if(!pipeId) {
 			// no pipeId; is it being created?
-			pipeId = req.headers["X-Create-Pipe-Id"];
+			pipeId = req.headers["x-create-pipe-id"];
 			if(!pipeId)
 				return this.failure(ctx,"no X-Pipe-Id data found");
 			
@@ -25,7 +30,7 @@ var XPipeFilter = function() {
 			if(!pipe)
 				return this.failure(ctx,"pipe not found");
 			
-	 		seq = req.headers["X-Seq"];
+	 		seq = req.headers["x-seq"];
 			if(!seq)
 				return this.failure(ctx,"sequence not included");
 			// todo: range check sequence?
@@ -61,12 +66,15 @@ var XPipeResponse = function(ctx,seq) {
 	
 	this.sendHeader = function(statusCode, headers) {
 		
+		//sys.debug("xpipe sendHeader\n");
+			
 		// ensure XPipe headers.
 		headers["X-Pipe-Id"] = ctx.pipe.pipeId;
 		headers["X-Seq"] = ctx.seq;
 
 		if(!this.isTop())
 		{
+			sys.debug("deferring");
 			this.buildDeferred();
 			this.headers = headers;
 			this.statusCode = statusCode;
@@ -76,7 +84,7 @@ var XPipeResponse = function(ctx,seq) {
 		var user = this.ctx.user;
 		
 		// load all system headers
-		this.import_system.headers(user,headers);
+		DefaultBaseFilter.import_system_headers(user,headers);
 		
 		// retrieve most recent response
 		var response = this.response = user.responses.shift();
@@ -85,6 +93,8 @@ var XPipeResponse = function(ctx,seq) {
 	}
 	
 	this.sendBody = function(chunk, encoding) {
+	
+		//sys.debug("xpipe sendBody\n");
 		
 		if(!this.isTop()) {
 			this.chunks.push(chunk);
@@ -100,7 +110,9 @@ var XPipeResponse = function(ctx,seq) {
 	}
 	
 	this.finish = function() {
-		
+	
+		//sys.debug("xpipe finish");
+			
 		if(!this.isTop())
 		{
 			this.done = true;
@@ -116,6 +128,7 @@ var XPipeResponse = function(ctx,seq) {
 
 	this.isTop = function()
 	{
+		//sys.debug("is top "+this.ctx.seq+" "+this.ctx.pipe.seq+"\n");
 		return this.ctx.seq == this.ctx.pipe.seq;
 	}
 
@@ -138,3 +151,5 @@ var XPipeResponse = function(ctx,seq) {
 		this.done = false;
 	}
 }
+
+inherit.inherit(XPipeFilter,DefaultBaseFilter);
