@@ -1,4 +1,5 @@
-var http = require("http"),
+var events = require("events"),
+    http = require("http"),
     path = require("path"),
     posix = require("posix"),
     sys = require("sys"),
@@ -23,19 +24,24 @@ for(var f in loadFiles)
 
 var userStore = new Object();
 
-var chain = [ 
+var initialChain = [ 
 	new SessionCookieFilter(),
 	new UserStoreFilter(userStore), 
 	new XPipeFilter(),
 	new ReverseHttpFilter(userStore,userDomainMatch),
 	new FileSystemFilter("./tests/")
 ];
-process.mixin(chain,new Chain());
 
 
 http.createServer(function(request,response) {
+	
 	var pc = new PipeContext(request,response);
+	var chain = pc.chain = new Chain(initialChain);
+	//chain.chainResult.addListener( function(ctx,result){
+	//	sys.debug("result!");
+	//});
 	chain.execute(pc);
+	
 }).listen(8765);
 
 

@@ -15,6 +15,7 @@ var XPipeFilter = function() {
 		for(var header in req.headers)
 		{
 			//sys.debug("header "+header+": "+req.headers[header]);
+			var i;
 		}
 		
 		if(!pipeId) {

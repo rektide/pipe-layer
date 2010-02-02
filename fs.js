@@ -17,12 +17,16 @@ var FileSystemFilter = function(basePath)
 				var response = ctx.response;
 				response.sendBody(data);
 				response.finish();
+				
+				Chain.resume(ctx);
 			});
 		})
                   .addErrback(function(){
 			var response = ctx.response;
 			response.sendHeader(404,{});
 			response.finish();
+
+			Chain.resume(ctx);
 		});
 
 		return "defer";
