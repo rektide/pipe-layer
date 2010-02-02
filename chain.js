@@ -14,8 +14,8 @@ var Chain = function(initialChain)
 	this.saveResult = null;
 	this.filterHandled = true;
 
-	this.chainResult = new events.Promise(); // callback for individual chains
-	this.filterResult = new events.Promise(); // callback for individual filters
+	this.chainResult = new events.EventEmitter(); // callback for individual chains
+	this.filterResult = new events.EventEmitter(); // callback for individual filters
 	
 	this.result = new events.Promise(); // net chain output
 
@@ -38,7 +38,7 @@ var Chain = function(initialChain)
 			var result = chain.execute(ctx);
 		} catch (err) {
 			// fire failure
-			this.chainResult.emitError(ctx,err);
+			this.chainResult.emit("error",ctx,err);
 		}
 	
 		// flagged to wait for someone else to fire completion
@@ -46,14 +46,11 @@ var Chain = function(initialChain)
 			return;
 		
 		// fire completion
-		this.chainResult.emitSuccess(ctx,result);
-
-		sys.debug("CHAIN DONE");
+		this.chainResult.emit("success",ctx,result);
 	}
 
 	this.chainSuccess = function(ctx,result) {
 	
-		sys.debug("CHAIN SUCCESS");
 		var chain = ctx.chain;
 		if(result)
 			chain.doFilters(ctx);
@@ -72,10 +69,10 @@ var Chain = function(initialChain)
 
 	this.doFilters = function(ctx) {
 
-		sys.debug("CHAIN FILTER");	
 		var filter = this.filterStack.pop();
 		if(filter)
 		{
+			sys.debug("CHAIN FILTER "+filter.name);
 			try {
 				var result = filter.postProcess(ctx,this.saveErr);
 			}
@@ -83,7 +80,7 @@ var Chain = function(initialChain)
 			if(result == "defer")
 				return;
 
-			this.filterResult.emitSuccess(ctx,result);
+			this.filterResult.emit("success",ctx,result);
 		}
 		else {
 			if(!this.filterHandled)
@@ -95,7 +92,6 @@ var Chain = function(initialChain)
 	
 	this.filterSuccess = function(ctx,result) {
 		
-		sys.debug("CHAIN FILTER SUCCESS");
 		var chain = ctx.chain;
 		if(result)
 			chain.filterHandled = true;
@@ -104,7 +100,6 @@ var Chain = function(initialChain)
 
 	this.filterError = function(ctx,err) {
 		
-		sys.debug("CHAIN FILTER FAIL");
 		ctx.chain.doFilters(ctx);
 	}
 
@@ -119,10 +114,10 @@ var Chain = function(initialChain)
 		this.chainPosition = 0;	
 	}
 
-	this.chainResult.addListener(this.chainSuccess);
-	this.chainResult.addErrback(this.chainError);
-	this.filterResult.addListener(this.filterSuccess);
-	this.filterResult.addErrback(this.filterError);
+	this.chainResult.addListener("success",this.chainSuccess);
+	this.chainResult.addListener("error",this.chainError);
+	this.filterResult.addListener("success",this.filterSuccess);
+	this.filterResult.addListener("error",this.filterError);
 }
 
 var DefaultChain = new Chain();
