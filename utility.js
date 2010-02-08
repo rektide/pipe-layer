@@ -32,21 +32,18 @@ var coroutine = function()
 	this.final = arguments.length;
 	this.count = 0;
 
-	this.join = function()
-	{
-		sys.debug("join "+sys.inspect(this));
-		if(++this.count==this.final) this.emitSuccess();
+	this.join = function() {
+	
+		if(++this.count==this.final) 
+			this.emitSuccess();
 	}
 
+	// bind callback
 	for(var i in arguments)
-	{
-		sys.debug("arg "+i);
 		if(arguments[i] instanceof events.Promise)
-		{
-			sys.debug("add callback");
 			arguments[i].addCallback( bind(this.join,this) );
-		}
-	}
 	
+	// TODO: understand desired behavior for errback.
+	// TODO: expose co-routine return values?
 }
 coroutine.prototype = new events.Promise();

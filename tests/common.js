@@ -1,4 +1,4 @@
 var sys = require("sys"),
-    event = require("event"),
+    events = require("events"),
     assert = require("assert")
 
