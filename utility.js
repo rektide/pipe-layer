@@ -27,7 +27,7 @@ var bind = function(f,ctx) {
 	}(f,ctx);
 }
 
-var coroutine = function()
+var forkjoin = function()
 {
 	this.final = arguments.length;
 	this.count = 0;
@@ -46,4 +46,4 @@ var coroutine = function()
 	// TODO: understand desired behavior for errback.
 	// TODO: expose co-routine return values?
 }
-coroutine.prototype = new events.Promise();
+forkjoin.prototype = new events.Promise();
