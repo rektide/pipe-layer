@@ -79,6 +79,7 @@ var XPipeResponse = function(ctx) {
 			this.buildDeferred();
 			this.headers = headers;
 			this.statusCode = statusCode;
+			
 			return;
 		}
 
@@ -125,6 +126,14 @@ var XPipeResponse = function(ctx) {
 		
 		this.response.finish();
 		this.ctx.pipe.seq++;
+		
+		// look for deferred to fire.
+		var pipe = this.ctx.pipe;
+		if(pipe.deferred.length && pipe.deferred[0].seq == pipe.seq)
+		{
+			sys.debug("follow up rseq to send");
+			pipe.deferred.shift().despool();
+		}
 	}
 
 	this.isTop = function()
@@ -151,6 +160,8 @@ var XPipeResponse = function(ctx) {
 		this.chunks= new Array();
 		this.encodings = new Array();
 		this.done = false;
+
+		orderedInsert(this.ctx.pipe.deferred,this.ctx,function(a,b){return a.seq - b.seq});
 	}
 }
 
