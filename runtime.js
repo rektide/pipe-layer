@@ -6,6 +6,7 @@ var events = require("events"),
     inherit = require("./inherit");
 
 var loadFiles = [
+	"utility.js",
 	"chain.js", "base.js",
 	"cookie.js", "user.js", "xpipe.js", "reverse.js", "fs.js"
 ];
@@ -37,6 +38,7 @@ http.createServer(function(request,response) {
 	
 	var pc = new PipeContext(request,response);
 	var chain = pc.chain = new Chain(initialChain);
+	
 	//chain.chainResult.addCallback( function(ctx,result){
 	//	sys.debug("result!");
 	//});
@@ -44,7 +46,7 @@ http.createServer(function(request,response) {
 	chain.result.addErrback( function(ctx,err){
 		sys.debug("error "+err);
 	});
-
+	
 	chain.execute(pc);
 	
 }).listen(8765);
