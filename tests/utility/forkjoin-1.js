@@ -1,7 +1,7 @@
 var done = false;
 
 var a = new events.Promise(), b = new events.Promise(), c = new events.Promise();
-var co = new coroutine(a,b,c).addCallback(function(){sys.puts("coroutine called");done= true});
+var co = new forkjoin(a,b,c).addCallback(function(){sys.puts("forkjoin called");done= true});
 
 sys.puts("a");
 a.emitSuccess();
