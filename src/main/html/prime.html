@@ -1,0 +1,38 @@
+<html>
+<body>
+
+<script type="text/javascript">
+
+	// setup an message handler
+	var haveReply = false;
+	document.addEventListener("message",function(e) {
+		haveReply = true
+		alert("recv "+e);
+	},false);
+
+	// give ourselves a random name
+	//window.name= Math.random()
+
+	// look for a prime window
+	var target = window.open("","prime",null,false);
+	// send prime hello
+	target.postMessage("hiya from "+window.name,'*');
+
+	// if no prime window is found, become the prime window
+	setTimeout(function(){
+		// no reply, i am prime
+		if(!haveReply)
+		{
+			alert("I am become prime");
+			window.name = "prime";
+		}
+	},1000);
+
+	alert(window.uri)
+	
+</script>
+
+<p1>prime</p1>
+
+</body>
+</html>
