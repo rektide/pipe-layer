@@ -10,23 +10,19 @@ var XPipeFilter = function() {
 	
 		// retrieve pipeId and seq
 		var req = ctx.request;
-		var pipe,seq,pipeId = req.headers["x-pipe-id"];
+		var pipe,seq,pipeId = req.headers["x-pipe"];
 
-		for(var header in req.headers)
-		{
-			//sys.debug("header "+header+": "+req.headers[header]);
-			var i;
-		}
-		
 		if(!pipeId) {
-			// no pipeId; is it being created?
-			pipeId = req.headers["x-create-pipe-id"];
+
+			// no pipeId; should be being created
+			pipeId = req.headers["x-create-pipe"];
 			if(!pipeId)
-				return this.failure(ctx,"no X-Pipe-Id data found");
+				return this.failure(ctx,"no X-Pipe data found");
 			
 			seq = 1;
 			pipe = user.pipes[pipeId] = this.createPipe(ctx,pipeId);
 		} else {
+
 			pipe = user.pipes[pipeId];
 			if(!pipe)
 				return this.failure(ctx,"pipe not found");
@@ -50,10 +46,10 @@ var XPipeFilter = function() {
 	this.createPipe = function(ctx,pipeId) {
 	
 		var pipe = new Object();
-		pipe.pipeId = pipeId;
+		pipe.pipe = pipe;
 		pipe.seq = 1;
 		pipe.rseq = 1;
-		pipe.deferred = new Array();
+		pipe.deferred = [];
 		return pipe;
 	}
 }
@@ -70,7 +66,7 @@ var XPipeResponse = function(ctx) {
 		//sys.debug("xpipe sendHeader ");
 			
 		// ensure XPipe headers.
-		headers["X-Pipe-Id"] = this.ctx.pipe.pipeId;
+		headers["X-Pipe"] = this.ctx.pipe.pipeId;
 		headers["X-Seq"] = this.ctx.seq;
 
 		if(!this.isTop())
@@ -123,16 +119,18 @@ var XPipeResponse = function(ctx) {
 			// we're at the top, but there are headers queued from when we werent
 			this.despool();
 		}
-		
+	
+		var pipe = this.ctx.pipe
+			
 		this.response.finish();
-		this.ctx.pipe.seq++;
+		pipe.seq++;
 		
 		// look for deferred to fire.
-		var pipe = this.ctx.pipe;
-		if(pipe.deferred.length && pipe.deferred[0].seq == pipe.seq)
+		while(pipe.deferred.length && pipe.deferred[0].seq == pipe.seq)
 		{
 			sys.debug("follow up rseq to send");
 			pipe.deferred.shift().despool();
+			pipe.seq++
 		}
 	}
 
