@@ -62,7 +62,6 @@ var XMLHttpRequest = function() {
 		if(data !== undefined)
 			this._req["data"] = data
 
-		this._worker.port._xhr = this
 		this._worker.port.postMessage(this._req)
 	}
 	
@@ -71,41 +70,47 @@ var XMLHttpRequest = function() {
 	}
 
 	// bind a listener
-	this._worker.port.addEventListener('message',function(e){
+	function handler(e) {
 	
-		debugger
-	
-		console.log("xhr got-back")	
+		console.log("xhr got-back")
 		var msg = e.data
-		var xhr = this._xhr
-		
-		xhr.readyState = msg.readyState
+	
+		var pipe = msg["pipe"]
+		if(pipe !== undefined)
+			this.pipe = pipe
+		var seq = msg["seq"]
+		if(seq !== undefined)
+			this.seq = seq
+		var rseq = msg["rseq"]
+		if(rseq !== undefined)
+			this.rseq = rseq;
+	
+		// non message response	
+		this.readyState = msg.readyState
+		if(msg["readyState"] === undefined) return
 	
 		var headers = msg["headers"]
 		if(headers !== undefined)
-			xhr.headers = headers
+			this.headers = headers
 		var status = msg["status"]
 		if(status !== undefined)
-			xhr.status = status
+			this.status = status
 		var statusText = msg["statusText"]
 		if(statusText !== undefined)
-			xhr.statusText = statusText
+			this.statusText = statusText
 		
-		xhr.pipe = msg.pipe
-		xhr.seq = msg.seq
-		xhr.rseq = msg.rseq
-		
-		xhr.responseText = xhr.responseText || "" + msg.responseDelta 
+		this.responseText = this.responseText || "" + msg.responseDelta 
 
 		var responseXML = this["responseXML"]
 		if(responseXML !== undefined)
-			xhr.responseXML = responseXML
+			this.responseXML = responseXML
 
-		var ready = xhr.onreadystatechange
+		var ready = this.onreadystatechange
 		if(ready !== undefined)
-			ready.call(xhr)
+			ready.call(this)
 		
 	}, false)
+	this._worker.port.addEventListener('message',handler);
 
 	this._worker.port.start()
 }
