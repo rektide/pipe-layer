@@ -1,7 +1,7 @@
 var events = require("events"),
     http = require("http"),
     path = require("path"),
-    posix = require("posix"),
+    fs = require("fs"),
     sys = require("sys"),
     inherit = require("./inherit");
 
@@ -17,9 +17,10 @@ for(var f in loadFiles)
 	var filename = loadFiles[f];
 	sys.print("evaluating "+filename+"\n");
 	
-	var file = posix.open(""+filename, process.O_RDONLY, 0).wait();
-	var data = posix.read(file, readLength).wait()[0];
-	var context = eval(data,context);
+	var fd = fs.openSync(""+filename, process.O_RDONLY, 0)
+	var data = fs.readSync(fd, readLength)[0]
+	//process.compile(data, filename)
+	eval(data)
 };
 
 

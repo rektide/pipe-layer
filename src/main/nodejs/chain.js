@@ -17,7 +17,7 @@ var Chain = function(initialChain)
 	this.chainResult = new events.EventEmitter(); // callback for individual chains
 	this.filterResult = new events.EventEmitter(); // callback for individual filters
 	
-	this.result = new events.Promise(); // net chain output
+	this.result = new events.EventEmitter(); // net chain output
 
 	this.execute = function(ctx) {
 
@@ -84,9 +84,9 @@ var Chain = function(initialChain)
 		}
 		else {
 			if(!this.filterHandled)
-				this.result.emitError(ctx,this.saveErr);
+				this.result.emit('error',ctx,this.saveErr);
 			else
-				this.result.emitSuccess(ctx,this.saveResult);
+				this.result.emit('success',ctx,this.saveResult);
 		}
 	}
 	

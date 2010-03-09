@@ -35,7 +35,7 @@ var forkjoin = function()
 	this.join = function() {
 	
 		if(++this.count==this.final) 
-			this.emitSuccess();
+			this.emit('success');
 	}
 
 	// bind callback
@@ -45,5 +45,6 @@ var forkjoin = function()
 	
 	// TODO: understand desired behavior for errback.
 	// TODO: expose co-routine return values?
-}
-forkjoin.prototype = new events.Promise();
+};
+
+forkjoin.prototype = new events.EventEmitter();
