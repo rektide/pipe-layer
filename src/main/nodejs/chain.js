@@ -6,7 +6,7 @@ var PipeContext = function(request,response){
 
 var Chain = function(initialChain)
 {
-	this.chain = initialChain
+	this.chain = initialChain.slice(0) // copy
 	this.chainPosition = 0
 	this.filterStack = []
 		
@@ -50,7 +50,7 @@ var Chain = function(initialChain)
 	}
 
 	this.chainSuccess = function(ctx,result) {
-	
+
 		var chain = ctx.chain
 		if(result)
 			chain.doFilters(ctx)
