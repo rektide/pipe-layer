@@ -27,7 +27,7 @@ var bind = function(f,ctx) {
 	}(f,ctx)
 }
 
-var forkjoin = function()
+var forkjoin = function(waitState)
 {
 	this.final = arguments.length
 	this.count = 0
@@ -35,13 +35,13 @@ var forkjoin = function()
 	this.join = function() {
 	
 		if(++this.count==this.final) 
-			this.emit('success')
+			this.emit('success',this)
 	}
 
 	// bind callback
 	for(var i in arguments)
 		if(arguments[i] instanceof events.Promise)
-			arguments[i].addCallback( bind(this.join,this) )
+			arguments[i].addListener(waitState?waitState:'success', bind(this.join,this) )
 	
 	// TODO: understand desired behavior for errback.
 	// TODO: expose co-routine return values?

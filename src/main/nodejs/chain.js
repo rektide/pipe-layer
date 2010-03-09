@@ -110,7 +110,7 @@ var Chain = function(initialChain)
 
 	this.setChain = function(chain) {
 
-		this.chain = chain
+		this.chain = chain.slice(0)
 		this.chainPosition = 0
 	}
 
