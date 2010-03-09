@@ -83,7 +83,7 @@ var XMLHttpRequest = function() {
 			this.seq = seq
 		var rseq = msg["rseq"]
 		if(rseq !== undefined)
-			this.rseq = rseq;
+			this.rseq = rseq
 	
 		// non message response	
 		this.readyState = msg.readyState
@@ -110,7 +110,7 @@ var XMLHttpRequest = function() {
 			ready.call(this)
 		
 	}, false)
-	this._worker.port.addEventListener('message',handler);
+	this._worker.port.addEventListener('message',handler)
 
 	this._worker.port.start()
 }
