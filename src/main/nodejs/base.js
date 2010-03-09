@@ -1,8 +1,9 @@
 var BaseFilter = function() {
 
 	this.name = "BaseFilter"
-	
-	this.failure = function(ctx,cause) {
+
+	// gracefully handle a failure	
+	this.failure = function(ctx,cause,code) {
 		
 		// load system headers
 		var headers = {}
@@ -14,11 +15,21 @@ var BaseFilter = function() {
 	
 		// send response	
 		var resp = ctx.response
-		resp.sendHeader(400, headers)
+		resp.sendHeader(code?code:400, headers)
 		resp.sendBody(cause)
 		resp.finish()
+
+		if(ctx.chain)
+			ctx.chain.chainResult.emit("error",ctx,[code,cause])
 		
 		return true
+	}
+
+	this.success = function(ctx,handled) {
+		if(handled==undefined)
+			handled = true
+		ctx.chain.chainResult.emit("success",ctx,handled)
+		return handled
 	}
 
 	this.import_system_headers = function(user,headers)
