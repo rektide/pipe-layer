@@ -32,7 +32,7 @@ RegexRouter = function(routes, ctxMap) {
 
 }
 
-domainFunction = function(ctx) {
+Router.domain = function(ctx) {
 	return ctx.request.headers.Host
 }
 domainRoutes = {}
@@ -41,18 +41,18 @@ domainRoutes[/pipe.voodoowarez.com/] = InternalRouter
 domainRoutes[/content.voodoowarez.com/] = InternalRouter
 domainRoutes[/user.voodoowarez.com/] = InternalRouter
 
-domainRouter = new RegexRouter( domainRoutes, domainFunction )
+domainRouter = new RegexRouter( domainRoutes, Router.domain )
 
 
 
-pathFuntion = function(ctx) {
+Router.path = function(ctx) {
 	return ctx.request.uri.full
 }
 pathRoutes = {}
 pathRoutes[/home/] = HomeRouter
 pathRoutes[/static/] = StaticRouter 
 
-pathRouter = new RegexRouter( pathRoutes, domainRoutes )
+pathRouter = new RegexRouter( pathRoutes, Router.Path )
 
 
 
