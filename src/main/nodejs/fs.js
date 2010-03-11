@@ -30,7 +30,7 @@ var FileSystemFilter = function(basePath)
 			
 				this.success(ctx)	
 			})
-		}
+		})
 		
 		return "defer"
 	}
