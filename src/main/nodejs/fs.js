@@ -1,4 +1,4 @@
-var FileSystemFilter = function(basePath)
+var FileSystemFilter = function(base,urlPrefix)
 {
 	var readLength = 8*1024*1024
 
@@ -6,9 +6,14 @@ var FileSystemFilter = function(basePath)
 
 	this.execute = function(ctx)
 	{
+		// get url
 		var url = ctx.request.url
-		var pth = path.join(basePath,url)
-		
+		// truncate prefix
+		if(url.slice(0,urlPrefix.length) == urlPrefix)
+			url = url.substr(urlPrefix.length)
+	
+		// open path
+		var pth = path.join(base,url)
 		fs.open(pth,process.O_RDONLY,0,function(err,fd) {
 			
 			if(err) {
@@ -16,6 +21,7 @@ var FileSystemFilter = function(basePath)
 				return
 			}
 
+			// read contents
 			fs.read(fd,readLength,0, function(err,data,len){
 
 				if(err) {
@@ -23,12 +29,14 @@ var FileSystemFilter = function(basePath)
 					return
 				}
 
+				// write file contents as response
+				
 				var response = ctx.response
 				response.sendHeader(200,{"Content-Length": data.length})
 				response.sendBody(data)
 				response.finish()
 			
-				this.success(ctx)	
+				this.success(ctx)
 			})
 		})
 		
