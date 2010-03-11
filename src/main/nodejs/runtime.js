@@ -37,12 +37,19 @@ for(var f in loadFiles)
 }
 
 
+// various execution chains
+
+// chain for html code
+
+var html5FsChain = new Chain([
+	new FileSystemFilteR("src/main/html")
+])
+
 // chain for test
 
 var testFsChain = new Chain([
-	new FileSystemFilter("src/tests/nodejs")
+	new FileSystemFilter("src/tests/html")
 ])
-
 
 // chain for reverse
 
@@ -52,15 +59,15 @@ var reverseChain = new Chain([
 	new UserStoreFilter(userStore), 
 	new XPipeFilter(),
 	new ReverseHttpFilter(userStore,userDomainMatch),
-	new FileSystemFilter("../../tests/")
+	new FileSystemFilter("src/tests/nodejs","pipe")
 ])
-
 
 // chain for a router pointing to different contexts
 
 var router1 = new Chain([RegexRouter( Router.path, {
-	/\/test.*/: testFsChain
-	/\/rx^/: reverseChain
+	/\/pipe^/: reverseChain,
+	/\/pipe/.*/: html5FsChain,
+	/\/test/: testFsChain,
 })])
 
 
