@@ -71,10 +71,11 @@ var XMLHttpRequest = function() {
 	}
 
 	// bind a listener
-	function handler(e) {
+	this.handler=function(e) {
 	
 		console.log("xhr got-back")
 		var msg = e.data
+		debugger
 	
 		var pipe = msg["pipe"]
 		if(pipe !== undefined)
@@ -110,8 +111,8 @@ var XMLHttpRequest = function() {
 		if(ready !== undefined)
 			ready.call(this)
 		
-	}, false)
-	this._worker.port.addEventListener('message',handler)
+	}
+	this._worker.port.addEventListener('message',this.handler)
 
 	this._worker.port.start()
 }
