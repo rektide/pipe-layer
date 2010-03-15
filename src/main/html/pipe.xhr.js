@@ -1,5 +1,6 @@
-var worker_file = 'worker.xhr.js',
-	worker_name = 'xpipe'
+var worker_file = '/pl/worker.xhr.js',
+	worker_salt = queries["salt"] || "",
+	worker_name = 'xpipe'+worker_salt
 
 var XMLHttpRequest = function() {
 
