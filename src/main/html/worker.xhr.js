@@ -58,7 +58,7 @@ var xhrHandler = function(e,h) {
 	
 	// prepare a response
 	var msg = this["_message"]
-	var continuation = msg === undefined // are we the continuation of another deferred message?
+	var continuation = msg !== undefined // are we the continuation of another deferred message?
 	if(msg == undefined)
 		msg = {}
 	msg.readyState = this.readyState // 3 may be around for a while
@@ -162,14 +162,13 @@ var xhrHandler = function(e,h) {
 
 			// send the next message
 			var msg = port._deferred.shift()
-			postMessage.send(msg)
+			port.postMessage(msg)
 
 			// advance if the message was at the end
 			if(msg.readyState == 4) {
 				
 				++port._seq
 			}
-			
 		}
 	}
 	else if(!continuation) {
