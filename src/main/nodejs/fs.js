@@ -33,8 +33,8 @@ var FileSystemFilter = function(base,urlPrefix)
 				
 				var response = ctx.response
 				response.sendHeader(200,{"Content-Length": data.length})
-				response.sendBody(data)
-				response.finish()
+				response.write(data)
+				response.close()
 			
 				this.success(ctx)
 			})

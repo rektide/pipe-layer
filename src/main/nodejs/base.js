@@ -15,9 +15,9 @@ var BaseFilter = function() {
 	
 		// send response	
 		var resp = ctx.response
-		resp.sendHeader(code?code:400, headers)
-		resp.sendBody(cause)
-		resp.finish()
+		resp.sendHeader(code, headers)
+		resp.write(cause)
+		resp.close()
 
 		if(ctx.chain)
 			ctx.chain.chainResult.emit("error",ctx,[code,cause])

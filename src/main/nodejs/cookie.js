@@ -44,7 +44,7 @@ var SessionCookieFilter = function() {
 			
 			var response = user.responses.shift()
 			response.sendHeader(200,headers)
-			response.finish()
+			response.close()
 			
 			sys.print("cookie.postProcess sent reply\n")
 		}

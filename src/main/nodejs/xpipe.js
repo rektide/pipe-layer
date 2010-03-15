@@ -89,9 +89,9 @@ var XPipeResponse = function(ctx) {
 		response.sendHeader(statusCode,headers)
 	}
 	
-	this.sendBody = function(chunk, encoding) {
+	this.write= function(chunk, encoding) {
 	
-		//sys.debug("xpipe sendBody")
+		//sys.debug("xpipe write")
 		
 		if(!this.isTop()) {
 			this.chunks.push(chunk)
@@ -103,12 +103,12 @@ var XPipeResponse = function(ctx) {
 		}
 		
 		var response = this.response
-		response.sendBody.apply(response,arguments)
+		response.write.apply(response,arguments)
 	}
 	
-	this.finish = function() {
+	this.close= function() {
 	
-		//sys.debug("xpipe finish")
+		//sys.debug("xpipe close")
 			
 		if(!this.isTop()) {
 			this.done = true
@@ -120,7 +120,7 @@ var XPipeResponse = function(ctx) {
 	
 		var pipe = this.ctx.pipe
 			
-		this.response.finish()
+		this.response.close()
 		pipe.seq++
 		
 		// look for deferred to fire.
@@ -146,7 +146,7 @@ var XPipeResponse = function(ctx) {
 		
 		var response = this.response
 		for(var i = 0; i < this.chunks.length; ++i)
-			response.sendBody.call(response,this.chunks[i],this.encodings[i])
+			response.write.call(response,this.chunks[i],this.encodings[i])
 	}
 	
 	this.buildDeferred = function()
