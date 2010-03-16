@@ -1,4 +1,5 @@
-var events = require("events"),
+// modules for the global space
+events = require("events"),
     http = require("http"),
     path = require("path"),
     fs = require("fs"),
@@ -10,7 +11,7 @@ var events = require("events"),
 
 var loadFiles = [
 	"utility.js",
-	"chain.js", "base.js",
+	"chain.js", "base.js", "router.js",
 	"cookie.js", "user.js", "xpipe.js", "reverse.js", "fs.js"
 ]
 
@@ -32,8 +33,7 @@ for(var f in loadFiles)
 	var fd = fs.openSync(dir+filename, process.O_RDONLY, 0)
 	var data = fs.readSync(fd, readLength)[0]
 	// evaluate
-	//process.compile(data, filename)
-	eval(data)
+	process.compile(data, filename)
 }
 
 
