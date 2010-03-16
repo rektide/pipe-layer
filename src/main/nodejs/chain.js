@@ -6,7 +6,11 @@ var PipeContext = function(request,response){
 
 var Chain = function(initialChain)
 {
-	this.chain = (initialChain || []).slice(0) // copy
+	this.name = "Chain"
+
+	this.chain = []
+	if(initialChain)
+		this.chain = (initialChain["chain"]?initialChain.chain:initialChain).slice(0)
 	this.chainPosition = 0
 	this.filterStack = []
 		
@@ -58,6 +62,7 @@ var Chain = function(initialChain)
 
 	this.chainSuccess = function(ctx,result) {
 
+		sys.debug("CHAIN SUCCESS "+result)
 		var chain = ctx.chain
 		chain.saveResult = result
 		if(result)
@@ -68,7 +73,7 @@ var Chain = function(initialChain)
 
 	this.chainError = function(ctx,err) {
 
-		sys.debug("CHAIN ERROR")
+		sys.debug("CHAIN ERROR "+err)
 		var chain = ctx.chain
 		chain.saveError = err
 		chain.filterHandled = false
@@ -85,12 +90,15 @@ var Chain = function(initialChain)
 				var result = filter.postProcess(ctx,this.saveErr)
 			}
 			catch(err) {}
-			if(result == "defer")
+			if(result == "defer") {
+				sys.debug("CHAIN FDEFER")
 				return
+			}
 
 			this.filterResult.emit("success",ctx,result)
 		}
 		else {
+			sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
 			if(!this.filterHandled)
 				this.result.emit('error',ctx,this.saveError)
 			else
@@ -118,7 +126,7 @@ var Chain = function(initialChain)
 
 	this.setChain = function(chain) {
 
-		this.chain = chain.slice(0)
+		this.chain = (chain["chain"]?chain.chain:chain).slice(0)
 		this.chainPosition = 0
 	}
 
