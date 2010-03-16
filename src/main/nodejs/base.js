@@ -4,7 +4,10 @@ var BaseFilter = function() {
 
 	// gracefully handle a failure	
 	this.failure = function(ctx,cause,code) {
-		
+	
+		cause = cause || ""
+		code = code || 400
+	
 		// load system headers
 		var headers = {}
 		var user = ctx.user || {}
