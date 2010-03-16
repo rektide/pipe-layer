@@ -3,6 +3,7 @@
 
 var Router = function(f,r,opt) {
 
+	this.name = "Router"
 	this.f = f
 	this.r = r
 	this.issueNotFound = false
@@ -63,6 +64,7 @@ inherit.inherit(Router,DefaultBaseFilter)
 
 var RegexRouter = function(f, routes, opt) {
 
+	this.name = "RegexRouter"
 	this.f = f
 
 	// read in route database
