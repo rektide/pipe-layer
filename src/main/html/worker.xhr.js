@@ -38,8 +38,11 @@ var onmessage = function(e) {
 	for(var h in req.headers)
 		xhr.setRequestHeader(h, req.headers[h])
 	// add x-pipe and x-seq headers 
-	xhr.setRequestHeader("X-Pipe", port._pipe)
-	xhr.setRequestHeader("X-Seq", port._seqTicket++)
+	if(port._seqTicket != 1) {
+		xhr.setRequestHeader("X-Pipe", port._pipe)
+		xhr.setRequestHeader("X-Seq", port._seqTicket++)
+	} else
+		xhr.setRequestHeader("X-Create-Pipe", port._pipe)
 
 	// used only if server doesnt end up supporting x-pipe
 	// otherwise, we look up the clientDb from the x-pipe
