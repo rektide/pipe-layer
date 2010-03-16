@@ -1,39 +1,93 @@
 
 // router is just command with a particular semantic meaning, and a weak implication that it probably delegates to other command patterns
 
-Router = function(f,r) {
+var Router = function(f,r,opt) {
 
 	this.f = f
 	this.r = r
-	this.rf = typeof(r) == "function"
+	this.issueNotFound = false
+
+	for(var i in opt)
+		this[i] = opt[i]
+
 	this.execute = function(ctx) { 
-		var k = this.f(r)
-		// TODO: metaprogram this
-		return (this.rf?this.r(k):this.r[k]).execute(ctx)
-	}
-}
-
-RegexRouter = function(f, routes) {
-
-	this.f = f
-
-	this.routes = {}
-	var i = 0
-	for(var r in routes)
-	{
-		rgx = r
-		if(r[0] == "/" && r[r.length] == "/")
-			rgx = r.slice(1,r.length-1)
-		this.routes[i++] = [RegExp(rgx), routes[r]]
+		
+		if(typeof(this.r) == "function")
+			this.execute = this.executeFunction
+		else
+			this.execute = this.executeArray
+		this.execute(ctx)
 	}
 	
-	this.r = function(item) {
-		for(var i in this.routes)
-			if(this.routes[i][0].match(item))
-				return this.routes[i]
+	this.executeFunction = function(ctx) {
+		
+		sys.debug("ROUTE BEGIN")
+		var t = this.f(ctx)
+		if(!t)
+			return this.returnNotFound(ctx)
+		t = this.r(t)
+		if(!t)
+			return this.returnNotFound(ctx)
+		sys.debug("ROUTE EXECUTE")
+		ctx.chain.setChain(t)
+		return false
+	}
+	
+	this.executeArray = function(ctx) {
+		
+		sys.debug("ROUTE BEGIN")
+		var t = this.f(ctx)
+		if(!t)
+			return this.returnNotFound(ctx)
+		t = this.r[t]
+		if(!t)
+			return this.returnNotFound(ctx)
+		sys.debug("ROUTE EXECUTE")
+		ctx.chain.setChain(t)
+		return false
+	}
+	
+	this.returnNotFound = function(ctx) {
+		
+		sys.debug("ROUTE NOT FOUND")
+		if(this.issueNotFound) {
+			
+			this.failure(ctx,"route not found",404)
+			// already handled and dealt with request
+			return "defer"
+		}
 		return false
 	}
 }
+inherit.inherit(Router,DefaultBaseFilter)
+
+var RegexRouter = function(f, routes, opt) {
+
+	this.f = f
+
+	// read in route database
+	this.routes = []
+	for(var r in routes)
+	{
+		rgx = r
+		// strip // off regex string
+		if(r[0] == "/" && r[r.length-1] == "/")
+			rgx = r.slice(1,r.length-1)
+		// write route entry
+		this.routes.push([RegExp(rgx), routes[r]])
+	}
+
+	for(var i in opt)
+		this[i] = opt[i]
+	
+	this.r = function(item) {
+		for(var i in this.routes)
+			if(this.routes[i][0].test(item))
+				return this.routes[i][1]
+		return false
+	}
+}
+inherit.inherit(RegexRouter,new Router())
 
 Router.domain = function(ctx) {
 	return ctx.request.headers.Host
@@ -51,7 +105,7 @@ domainRouter = new RegexRouter( domainRoutes, Router.domain )
 
 
 Router.path = function(ctx) {
-	return ctx.request.uri.full
+	return ctx.request.url
 }
 
 /*
