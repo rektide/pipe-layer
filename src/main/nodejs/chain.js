@@ -25,7 +25,7 @@ var Chain = function(initialChain)
 
 		// no more entries left	
 		if(!chain)
-			this.doFilters(ctx)
+			return this.doFilters(ctx)
 		
 		sys.debug("CHAIN ITER "+chain.name)
 
@@ -38,20 +38,28 @@ var Chain = function(initialChain)
 			var result = chain.execute(ctx)
 		} catch (err) {
 			// fire failure
-			this.chainResult.emit("error",ctx,err)
+			this.chainResult.emit("error",ctx,err,chain)
+			return false
 		}
-	
+
 		// flagged to wait for someone else to fire completion
 		if(result=="defer")
-			return
+			return result
 		
-		// fire completion
-		this.chainResult.emit("success",ctx,result)
+		if(result) {
+			// fire completion
+			sys.debug("CHAIN RESULT "+result)
+			this.chainResult.emit("success",ctx,result)
+			return true
+		} else
+			// continue processing chain
+			return this.execute(ctx)
 	}
 
 	this.chainSuccess = function(ctx,result) {
 
 		var chain = ctx.chain
+		chain.saveResult = result
 		if(result)
 			chain.doFilters(ctx)
 		else
@@ -84,7 +92,7 @@ var Chain = function(initialChain)
 		}
 		else {
 			if(!this.filterHandled)
-				this.result.emit('error',ctx,this.saveErr)
+				this.result.emit('error',ctx,this.saveError)
 			else
 				this.result.emit('success',ctx,this.saveResult)
 		}
