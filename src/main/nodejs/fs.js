@@ -3,29 +3,36 @@ var FileSystemFilter = function(base,urlPrefix)
 	var readLength = 8*1024*1024
 
 	this.name = "FileSystemFilter"
+	this.urlPrefix = urlPrefix || ""
+	this.base = "./" + base
 
-	this.execute = function(ctx)
-	{
+	this.execute = function(ctx) {
+
+		sys.debug("FS EXEC")
+		
 		// get url
 		var url = ctx.request.url
 		// truncate prefix
-		if(url.slice(0,urlPrefix.length) == urlPrefix)
-			url = url.substr(urlPrefix.length)
+		if(url.slice(0,this.urlPrefix.length) == this.urlPrefix)
+			url = url.substr(this.urlPrefix.length)
 	
 		// open path
-		var pth = path.join(base,url)
+		var pth = path.join(this.base,url)
+		var slf = this
 		fs.open(pth,process.O_RDONLY,0,function(err,fd) {
 			
 			if(err) {
-				this.failure(ctx,null,404)
+				sys.debug("FS ERR OPEN "+pth+" "+err)
+				slf.failure(ctx,null,404)
 				return
 			}
 
 			// read contents
-			fs.read(fd,readLength,0, function(err,data,len){
+			fs.read(fd,readLength,0,null,function(err,data,len){
 
 				if(err) {
-					this.failure(ctx,null,500)
+					sys.debug("FS ERR READ "+pth+" "+err)
+					slf.failure(ctx,null,500)
 					return
 				}
 
@@ -36,7 +43,8 @@ var FileSystemFilter = function(base,urlPrefix)
 				response.write(data)
 				response.close()
 			
-				this.success(ctx)
+				slf.success(ctx)
+				sys.debug("FS DONE "+pth)
 			})
 		})
 		
