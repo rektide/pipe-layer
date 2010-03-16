@@ -42,13 +42,13 @@ for(var f in loadFiles)
 // chain for html code
 
 var html5FsChain = new Chain([
-	new FileSystemFilteR("src/main/html")
+	new FileSystemFilter("src/main/html","/pl")
 ])
 
 // chain for test
 
 var testFsChain = new Chain([
-	new FileSystemFilter("src/tests/html")
+	new FileSystemFilter("src/tests/html","/test")
 ])
 
 // chain for reverse
@@ -59,16 +59,16 @@ var reverseChain = new Chain([
 	new UserStoreFilter(userStore), 
 	new XPipeFilter(),
 	new ReverseHttpFilter(userStore,userDomainMatch),
-	new FileSystemFilter("src/tests/nodejs","pipe")
+	new FileSystemFilter("src/tests/nodejs","/pipe")
 ])
 
 // chain for a router pointing to different contexts
 
-var router1 = new Chain([RegexRouter( Router.path, {
-	/\/pipe^/: reverseChain,
-	/\/pipe/.*/: html5FsChain,
-	/\/test/: testFsChain,
-})])
+var router1 = new Chain([new RegexRouter( Router.path, {
+	'^/pipe/': reverseChain,
+	'^/pl/': html5FsChain,
+	'^/test/': testFsChain},
+{issueNotFound:true}) ])
 
 
 // http server
@@ -85,12 +85,12 @@ srv1 = http.createServer(function(request,response) {
 	//})
 
 	// throw errors to consome
-	chain.result.addListener('error', function(ctx,err){
-		sys.debug("error "+err)
+	chain.result.addListener('error', function(ctx,err,chain){
+		sys.debug("RUN ERR "+err)
 	})
-	
-	chain.execute(pc)
-	
+
+	var result = chain.execute(pc)
+	sys.debug("RUN STATE "+request.url+" "+result)	
 })
 
 // commence
