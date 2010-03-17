@@ -55,7 +55,7 @@ var onmessage = function(e) {
 var headerValueChomp = /^:\s*(\w.*?)\s*\r?$/m
 var xhrHandler = function(e,h) {
 	
-	// require at least headers to be done
+	// require at least headers to progress
 	if(this.readyState < 2)
 		return
 	
@@ -64,8 +64,38 @@ var xhrHandler = function(e,h) {
 	var continuation = msg !== undefined // are we the continuation of another deferred message?
 	if(msg == undefined)
 		msg = {}
-	msg.readyState = this.readyState // 3 may be around for a while
 
+	// load headers
+	if(!msg.headers) {
+	
+		// parse headers
+		var headers = {}
+		var headerText = this.getAllResponseHeaders()
+		var headerRows = headerText.split("\n")
+		for(var rowIndex in headerRows) {
+
+			var row = headerRows[rowIndex]
+			var headerKey = row.split(":",1)[0]
+			if(headerKey.length >= row.length)
+				continue
+			var headerValue = row.substr(headerKey.length)
+
+			// clean headerValue
+			headerValue = headerValueChomp.exec(headerValue)[1]
+			
+			// attach to existing header
+			if(headers[headerKey] != undefined)
+				headerValue = headers[headerKey]+","+headerValue
+			
+			// write complete header line to headers
+			headers[headerKey] = headerValue
+		}
+	
+		// install headers		
+		msg.headers = headers
+	}
+
+	
 	// lookup pipe
 	var pipe = this._pipe
 	if(pipe === undefined) {
@@ -101,33 +131,7 @@ var xhrHandler = function(e,h) {
 
 	// initial XHR handle call
 	if(this.readyState == 2 || this["_headersSent"] == undefined) {
-		
-		// parse headers
-		var headers = {}
-		var headerText = this.getAllResponseHeaders()
-		var headerRows = headerText.split("\n")
-		for(var rowIndex in headerRows) {
 
-			var row = headerRows[rowIndex]
-			var headerKey = row.split(":",1)[0]
-			if(headerKey.length >= row.length)
-				continue
-			var headerValue = row.substr(headerKey.length)
-
-			// clean headerValue
-			headerValue = headerValueChomp.exec(headerValue)[1]
-			
-			// attach to existing header
-			if(headers[headerKey] != undefined)
-				headerValue = headers[headerKey]+","+headerValue
-			
-			// write complete header line to headers
-			headers[headerKey] = headerValue
-		}
-	
-		// install headers		
-		msg.headers = headers
-	
 		// load status
 		msg.status = this.status
 		msg.statusText = this.statusText
@@ -139,10 +143,12 @@ var xhrHandler = function(e,h) {
 		// headers are queued to send
 		this._headersSent = true
 	}
+
+	// load state	
+	msg.readyState = this.readyState // 3 may be around for a while
 	
 	// read in body content
 	var bodyLen = this["_bodyLen"] || 0
-	
 	msg.responseDelta = this.responseText.substr(bodyLen)
 	this._bodyLen = this.responseText.length
 	
