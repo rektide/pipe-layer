@@ -51,6 +51,11 @@ var testFsChain = new Chain([
 	new FileSystemFilter("src/tests/html","/test")
 ])
 
+// chain for... favicon!
+var faviconChain = new Chain([
+	new FileSystemFilter("src/tests/html")
+])
+
 // chain for reverse
 
 var userStore = new Object()
@@ -67,7 +72,8 @@ var reverseChain = new Chain([
 var router1 = new Chain([new RegexRouter( Router.path, {
 	'^/pipe/': reverseChain,
 	'^/pl/': html5FsChain,
-	'^/test/': testFsChain},
+	'^/test/': testFsChain,
+	'^/favicon.ico': faviconChain},
 {issueNotFound:true}) ])
 
 

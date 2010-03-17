@@ -15,6 +15,10 @@ var FileSystemFilter = function(base,urlPrefix)
 		// truncate prefix
 		if(url.slice(0,this.urlPrefix.length) == this.urlPrefix)
 			url = url.substr(this.urlPrefix.length)
+		// truncate suffix - query & hash
+		var q = url.indexOf('?')
+		if(q!=-1)
+			url = url.substr(0,q)
 	
 		// open path
 		var pth = path.join(this.base,url)
