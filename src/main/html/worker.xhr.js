@@ -54,21 +54,30 @@ var onmessage = function(e) {
 
 var headerValueChomp = /^:\s*(\w.*?)\s*\r?$/m
 var xhrHandler = function(e,h) {
-	
+
 	// require at least headers to progress
 	if(this.readyState < 2)
 		return
-	
-	// prepare a response
-	var msg = this["_message"]
-	var continuation = msg !== undefined // are we the continuation of another deferred message?
-	if(msg == undefined)
+
+
+	// prepare a msg to send for with this new data
+	var msg = this._message
+	// are we the continuation of another deferred message?
+	var continuation = msg !== undefined 
+	// we're not, so we need a message.
+	if(!continuation)
 		msg = {}
+	// we think we are, but that message has already been flagged as sent.
+	if(msg._sent) {
+		continuation = false
+		msg = this._message = {}
+	}
+
 
 	// load headers
-	var headers = this["_headers"]
+	var headers = this._headers
 	if(headers == undefined) {
-	
+
 		// parse headers
 		headers = {}
 		var headerText = this.getAllResponseHeaders()
@@ -79,114 +88,145 @@ var xhrHandler = function(e,h) {
 			var headerKey = row.split(":",1)[0]
 			if(headerKey.length >= row.length)
 				continue
+			// get everything after the header key
 			var headerValue = row.substr(headerKey.length)
 
-			// clean headerValue
+			// clean headerValue, remove whitespacing
 			headerValue = headerValueChomp.exec(headerValue)[1]
-			
+
 			// attach to existing header
 			if(headers[headerKey] != undefined)
 				headerValue = headers[headerKey]+","+headerValue
-			
+
 			// write complete header line to headers
 			headers[headerKey] = headerValue
 		}
-	
+
 		// install headers
 		this._headers = headers
 	}
 
-	
-	// lookup pipe
-	var pipe = this._pipe
-	if(pipe === undefined) {
-	
-		pipe = headers["X-Pipe"] || headers["x-pipe"]
-		if(pipe === undefined) return
 
-		msg.pipe = pipe
-	}
+	// lookup pipe
+
+	// do we already know our pipe?
+	var pipe = this._pipe
+
+	// look in header for pipe	
 	if(pipe === undefined) {
-		
+
+		pipe = headers["X-Pipe"] || headers["x-pipe"]
+	}
+
+ 	// look in header for _new_ pipe
+	if(pipe === undefined) {
+
 		// ok this is a really weird context-- the server is asking to create its own pipe to us.
 		pipe = headers["X-Create-Pipe"] || headers["x-create-pipe"]
-		if(pipe === undefined) return
 
-		msg.pipe = pipe
-		
 		// need to set up a router & global event dispatcher to figure out who (which pages) gets to talk to the new pipe
-	
+
 		// create a clientDb[pipe] entry to handle
 		// this ought be another rhttp gateway
 	}
-	// non- pipelined server, reply is to original request
+
+	// fallback -- dont have pipe yet; non- pipelined server, reply to original request
 	if(pipe === undefined) {
 
 		pipe = this._port._pipe
+		msg.nonPipeLayer = true
 	}
-	this._pipe = pipe
+
+	// error case; pipe not found?! should at least be able to reply as per fallback!
+	if(pipe === undefined) {
+
+		throw "pipe not found"
+	}
+
+	// assign pipe on message if we've found it just now
+	if(this._pipe === undefined) {
+		msg.pipe = pipe
+		this._pipe = pipe
+	}
+
 
 	// lookup port
 	var port = clientDb[pipe]
 
 
-	// initial XHR handle call
+	// initial XHR handle call, load basic datums
 	var seq = headers["X-Seq"] || headers["x-seq"]
-	if(this.readyState == 2 || this["_headersSent"] == undefined) {
+	if(this.readyState == 2 || this._headersSent == undefined) {
 
 		// load status
 		msg.status = this.status
 		msg.statusText = this.statusText
-	
+
 		// load sequence
 		msg.seq = seq
 		msg.rseq = headers["X-RSeq"] || headers["x-rseq"]
 
 		// load headers
 		msg.headers = headers
-	
+
 		// headers are queued to send
 		this._headersSent = true
 	}
 
-	// load state	
+	// load state
 	msg.readyState = this.readyState // 3 may be around for a while
-	
+
 	// read in body content
-	var bodyLen = this["_bodyLen"] || 0
+	var bodyLen = this._bodyLen || 0
 	msg.responseDelta = this.responseText.substr(bodyLen)
 	this._bodyLen = this.responseText.length
-	
-	// read in responseXML
+
+	// load responseXML
 	if(this.readyState == 4) {
 
 		try {
-			msg.responseXML = this.responseXML
+			var x = this.responseXML
+			if(x)
+				msg.responseXML = x
 		} catch (err) {}
 	}
-	
-	// check whether we should defer
+
+	// check whether this message is fresh, or should defer
 	if(seq == port._seq) {
 
-		// we are the current -- dont defer, send
-		port.postMessage(msg)
+		// we're fresh
+		var fresh = true
+		
+		// while fresh, despool, check if next is fresh
+		while(fresh) {
 
-		// check for deferred to send
-		while(port._deferred.length && port._deferred[0].seq == port._seq) {
-
-			// send the next message
-			var msg = port._deferred.shift()
+			// send
 			port.postMessage(msg)
+			// tombstone; make sure no one tries to resend this message
+			msg._sent = true
 
-			// advance if the message was at the end
+			// message has been sent, assume nothing more to send
+			fresh = false
+
+			// is this xhr-message in its final state, nothing more to send?
 			if(msg.readyState == 4) {
-				
+
+				// go to next message
 				++port._seq
+
+				// check deferred's top to see if it is the next message
+				if(port._deferred.length && port._deferred[0].seq == port._seq) {
+
+					// deferred is next!  aka fresh!
+					fresh = true
+					// load in message for send
+					msg = port._deferred.shift()
+				}
 			}
 		}
 	}
 	else if(!continuation) {
-			
+
 		// havent already queued/deferred a message, and we're further down the queue
 		orderedInsert(port._deferred, msg, function(a,b) { return a.seq - b.seq })
 		// since we're deferring, build any future xhr state upon this existing message
