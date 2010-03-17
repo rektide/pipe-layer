@@ -66,10 +66,11 @@ var xhrHandler = function(e,h) {
 		msg = {}
 
 	// load headers
-	if(!msg.headers) {
+	var headers = this["_headers"]
+	if(headers == undefined) {
 	
 		// parse headers
-		var headers = {}
+		headers = {}
 		var headerText = this.getAllResponseHeaders()
 		var headerRows = headerText.split("\n")
 		for(var rowIndex in headerRows) {
@@ -91,8 +92,8 @@ var xhrHandler = function(e,h) {
 			headers[headerKey] = headerValue
 		}
 	
-		// install headers		
-		msg.headers = headers
+		// install headers
+		this._headers = headers
 	}
 
 	
@@ -127,9 +128,10 @@ var xhrHandler = function(e,h) {
 
 	// lookup port
 	var port = clientDb[pipe]
-	
+
 
 	// initial XHR handle call
+	var seq = headers["X-Seq"] || headers["x-seq"]
 	if(this.readyState == 2 || this["_headersSent"] == undefined) {
 
 		// load status
@@ -137,8 +139,11 @@ var xhrHandler = function(e,h) {
 		msg.statusText = this.statusText
 	
 		// load sequence
-		msg.seq = headers["X-Seq"] || headers["x-seq"]
+		msg.seq = seq
 		msg.rseq = headers["X-RSeq"] || headers["x-rseq"]
+
+		// load headers
+		msg.headers = headers
 	
 		// headers are queued to send
 		this._headersSent = true
@@ -161,7 +166,7 @@ var xhrHandler = function(e,h) {
 	}
 	
 	// check whether we should defer
-	if(msg.seq == port._seq) {
+	if(seq == port._seq) {
 
 		// we are the current -- dont defer, send
 		port.postMessage(msg)

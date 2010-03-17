@@ -46,7 +46,7 @@ var XPipeFilter = function() {
 	this.createPipe = function(ctx,pipeId) {
 	
 		var pipe = new Object()
-		pipe.pipe = pipe
+		pipe.pipeId = pipeId
 		pipe.seq = 1
 		pipe.rseq = 1
 		pipe.deferred = []
@@ -108,7 +108,7 @@ var XPipeResponse = function(ctx) {
 	
 	this.close= function() {
 	
-		//sys.debug("xpipe close")
+		//sys.debug("xpipe close "+this.pipeId)
 			
 		if(!this.isTop()) {
 			this.done = true
