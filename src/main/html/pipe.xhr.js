@@ -31,7 +31,6 @@ var XMLHttpRequest = function() {
 	
 		if(async == false)
 			throw "XH async only"
-		console.log("xhr open")	
 		
 		var req = this._req
 		req.method = method
@@ -49,7 +48,6 @@ var XMLHttpRequest = function() {
 		
 		if(this.readyState != 1)
 			throw "INVALID_STATE_ERR"
-		console.log("xhr set-request-header")
 		
 		this._req.headers[header] = value
 	}
@@ -58,7 +56,6 @@ var XMLHttpRequest = function() {
 	
 		if(this.readyState != 1)
 			throw "INVALID_STATE_ERR"
-		console.log("xhr send")
 		
 		if(data !== undefined)
 			this._req["data"] = data
@@ -70,47 +67,32 @@ var XMLHttpRequest = function() {
 		
 	}
 
+	// capture this
+	this._worker.port._xhr = this
+
 	// bind a listener
-	this.handler=function(e) {
-	
-		console.log("xhr got-back")
+	var replicants = ["pipe","seq","rseq","readyState","headers","status","statustext","responseXML"]
+	this.handler= function(e) {
+
+		var xhr = this._xhr
 		var msg = e.data
-		debugger
-	
-		var pipe = msg["pipe"]
-		if(pipe !== undefined)
-			this.pipe = pipe
-		var seq = msg["seq"]
-		if(seq !== undefined)
-			this.seq = seq
-		var rseq = msg["rseq"]
-		if(rseq !== undefined)
-			this.rseq = rseq
-	
-		// non message response	
-		this.readyState = msg.readyState
-		if(msg["readyState"] === undefined) return
-	
-		var headers = msg["headers"]
-		if(headers !== undefined)
-			this.headers = headers
-		var status = msg["status"]
-		if(status !== undefined)
-			this.status = status
-		var statusText = msg["statusText"]
-		if(statusText !== undefined)
-			this.statusText = statusText
-		
-		this.responseText = this.responseText || "" + msg.responseDelta 
+		console.log("pipe-xhr handler",xhr,msg)
 
-		var responseXML = this["responseXML"]
-		if(responseXML !== undefined)
-			this.responseXML = responseXML
+		// copy data into XHR
+		for(var ri in replicants) {
+			var r = replicants[ri]
+			var tmp = msg[r]
+			if(tmp !== undefined)
+				xhr[r] = tmp
+		}
 
-		var ready = this.onreadystatechange
+		// spool in responseDelta
+		xhr.responseText = (xhr.responseText || "") + msg.responseDelta
+
+		// fire ready state handler
+		var ready = xhr.onreadystatechange
 		if(ready !== undefined)
-			ready.call(this)
-		
+			ready.call(xhr)
 	}
 	this._worker.port.addEventListener('message',this.handler)
 
