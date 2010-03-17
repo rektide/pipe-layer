@@ -20,6 +20,9 @@ var UserStoreFilter = function(store,uriTemplate) {
 			ctx.isNewUser = true
 		}
 		
+		// set most recently used, for session expiry.
+		user.mru = new Date()
+		
 		ctx.user = user
 		return false
 	}

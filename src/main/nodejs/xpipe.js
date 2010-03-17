@@ -35,6 +35,9 @@ var XPipeFilter = function() {
 
 		ctx.pipe = pipe
 		ctx.seq = seq
+
+		// set pipes mru
+		pipe.mru = user.mru
 		
 		// enqueue reply, provide a proxy for this context
 		user.responses.push(ctx.response)
