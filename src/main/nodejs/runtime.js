@@ -1,17 +1,18 @@
 // modules for the global space
 events = require("events"),
-    http = require("http"),
-    path = require("path"),
-    fs = require("fs"),
-    sys = require("sys"),
-    inherit = require("./inherit")
+	http = require("http"),
+	path = require("path"),
+	fs = require("fs"),
+	sys = require("sys"),
+	inherit = require("./inherit"),
+	urlParse = require("url")
 
 
 // dependencies to be used in runtime
 
 var loadFiles = [
 	"utility.js",
-	"chain.js", "base.js", "router.js",
+	"chain.js", "base.js", "router.js", "delay.js",
 	"cookie.js", "user.js", "xpipe.js", "reverse.js", "fs.js"
 ]
 
@@ -48,6 +49,7 @@ var html5FsChain = new Chain([
 // chain for test
 
 var testFsChain = new Chain([
+	new DelayFilter(333),
 	new FileSystemFilter("src/tests/html","/test")
 ])
 
@@ -62,6 +64,7 @@ var userStore = new Object()
 var reverseChain = new Chain([ 
 	new SessionCookieFilter(),
 	new UserStoreFilter(userStore), 
+	new DelayFilter(333),
 	new XPipeFilter(),
 	new ReverseHttpFilter(userStore,userDomainMatch),
 	new FileSystemFilter("src/tests/nodejs","/pipe")

@@ -29,14 +29,15 @@ var BaseFilter = function() {
 	}
 
 	this.success = function(ctx,handled) {
+		
 		if(handled==undefined)
 			handled = true
 		ctx.chain.chainResult.emit("success",ctx,handled)
 		return handled
 	}
 
-	this.import_system_headers = function(user,headers)
-	{
+	this.import_system_headers = function(user,headers) {
+	
 		var system_headers = user.system_headers
 		user.system_headers = {}
 		for(var header in system_headers)
@@ -44,14 +45,22 @@ var BaseFilter = function() {
 	
 	}
 
-	this.set_system_headers = function(user /*, headerN, valueN, ... */ )
-	{
+	this.set_system_headers = function(user /*, headerN, valueN, ... */ ) {
+	
 		var system_headers = user.system_headers
 		if(!system_headers)
 			system_headers = user.system_headers = {}
 		var len = arguments.length - 1
 		for(var i = 1; i < len; i += 2)
 			system_headers[arguments[i]] = arguments[i+1]
+	}
+	
+	this.parseUrl = function(ctx) {
+	
+		var url = ctx["url"]
+		if(url===undefined)
+			url = ctx.url = urlParse.parse(ctx.request.url,true)
+		return url
 	}
 }
 
