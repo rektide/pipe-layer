@@ -26,7 +26,7 @@ var Router = function(f,r,opt) {
 		var t = this.f(ctx)
 		if(!t)
 			return this.returnNotFound(ctx)
-		t = this.r(t)
+		t = this.r(t,ctx)
 		if(!t)
 			return this.returnNotFound(ctx)
 		sys.debug("ROUTE EXECUTE")
@@ -82,10 +82,15 @@ var RegexRouter = function(f, routes, opt) {
 	for(var i in opt)
 		this[i] = opt[i]
 	
-	this.r = function(item) {
+	this.r = function(item,ctx) {
 		for(var i in this.routes)
-			if(this.routes[i][0].test(item))
+		{
+			var match = this.routes[i][0].exec(item)
+			if(match) {
+				ctx.regexContext = match
 				return this.routes[i][1]
+			}
+		}
 		return false
 	}
 }
