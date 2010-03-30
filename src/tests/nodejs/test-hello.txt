@@ -1,0 +1,11 @@
+0 200 /pipe/resource.txt
+0 content-length: 31
+0 x-pipe: 1
+0 x-seq: 1
+0 x-pipe-uri-template: http://users.voodoowarez.com/{user}/{pipe}/
+0 connection: close
+1 200 /pipe/resource.txt
+1 content-length: 31
+1 x-pipe: 1
+1 x-seq: 2
+1 connection: close

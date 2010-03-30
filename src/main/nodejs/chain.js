@@ -31,7 +31,7 @@ var Chain = function(initialChain)
 		if(!chain)
 			return this.doFilters(ctx)
 		
-		sys.debug("CHAIN ITER "+chain.name)
+		sys.debug("CHAIN ITER "+chain.name+" "+ctx.ticket)
 
 		// check if chain is a filter
 		if(chain["postProcess"]) 
@@ -62,7 +62,7 @@ var Chain = function(initialChain)
 
 	this.chainSuccess = function(ctx,result) {
 
-		sys.debug("CHAIN SUCCESS "+result)
+		//sys.debug("CHAIN SUCCESS "+result)
 		var chain = ctx.chain
 		chain.saveResult = result
 		if(result)
@@ -85,7 +85,7 @@ var Chain = function(initialChain)
 		var filter = this.filterStack.pop()
 		if(filter)
 		{
-			sys.debug("CHAIN FILTER "+filter.name)
+			sys.debug("CHAIN FILTER "+filter.name+" "+ctx.ticket)
 			try {
 				var result = filter.postProcess(ctx,this.saveErr)
 			}
@@ -98,7 +98,7 @@ var Chain = function(initialChain)
 			this.filterResult.emit("success",ctx,result)
 		}
 		else {
-			sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
+			//sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
 			if(!this.filterHandled)
 				this.result.emit('error',ctx,this.saveError)
 			else

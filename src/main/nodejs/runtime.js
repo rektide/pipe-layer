@@ -64,9 +64,9 @@ var userStore = new Object()
 var reverseChain = new Chain([ 
 	new SessionCookieFilter(),
 	new UserStoreFilter(userStore), 
-	new DelayFilter(333),
 	new XPipeFilter(),
 	new ReverseHttpFilter(userStore,userDomainMatch),
+	new DelayFilter(333),
 	new FileSystemFilter("src/tests/nodejs","/pipe")
 ])
 
@@ -82,10 +82,12 @@ var router1 = new Chain([new RegexRouter( Router.path, {
 
 // http server
 
+var ticket = 0
 srv1 = http.createServer(function(request,response) {
 
 	// build a context	
 	var pc = new PipeContext(request,response)
+	pc.ticket = ticket++
 	// get a new chain from our template chain
 	var chain = pc.chain = new Chain(router1)
 	

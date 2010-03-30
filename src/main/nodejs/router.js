@@ -22,37 +22,35 @@ var Router = function(f,r,opt) {
 	
 	this.executeFunction = function(ctx) {
 		
-		sys.debug("ROUTE BEGIN")
 		var t = this.f(ctx)
 		if(!t)
 			return this.returnNotFound(ctx)
 		t = this.r(t,ctx)
 		if(!t)
 			return this.returnNotFound(ctx)
-		sys.debug("ROUTE EXECUTE")
+		//sys.debug("ROUTE EXECUTE")
 		ctx.chain.setChain(t)
 		return false
 	}
 	
 	this.executeArray = function(ctx) {
 		
-		sys.debug("ROUTE BEGIN")
 		var t = this.f(ctx)
 		if(!t)
 			return this.returnNotFound(ctx)
 		t = this.r[t]
 		if(!t)
 			return this.returnNotFound(ctx)
-		sys.debug("ROUTE EXECUTE")
+		//sys.debug("ROUTE EXECUTE")
 		ctx.chain.setChain(t)
 		return false
 	}
 	
 	this.returnNotFound = function(ctx) {
 		
-		sys.debug("ROUTE NOT FOUND")
 		if(this.issueNotFound) {
 			
+			sys.debug("ROUTE NOT FOUND")
 			this.failure(ctx,"route not found",404)
 			// already handled and dealt with request
 			return "defer"
@@ -122,5 +120,4 @@ pathRoutes[/static/] = StaticRouter
 
 pathRouter = new RegexRouter( pathRoutes, Router.Path )
 */
-
 

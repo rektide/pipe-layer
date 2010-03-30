@@ -12,7 +12,7 @@ var binarySearch = function(o, v, s, i){
 
 var orderedInsert = function(target,element,sort) {
 	
-	var i = search(target,elem,sort,true)
+	var i = binarySearch(target,element,sort,true)
 	target.splice(i,0,element)
 	return i
 }

@@ -1,0 +1,29 @@
+<html>
+<head>
+	<title>XHR Page</title>
+	<script src="/pl/util.js" type="text/javascript"></script>
+	<script src="/pl/pipe.xhr.js" type="text/javascript"></script>
+</head>
+<body>
+
+<p>[hiya]</p>
+
+<script type="text/javascript">
+function handler() {
+	debugger
+	if(this.readyState == 4)
+		document.write("<p>[response received]</p>")
+}
+
+var xhr = new XMLHttpRequest()
+xhr.onreadystatechange = handler
+xhr.open("GET", "/pipe/resource.txt")
+xhr.send()
+
+console.log("main done")
+
+</script>
+
+
+</body>
+</html>

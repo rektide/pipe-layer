@@ -77,7 +77,6 @@ var XPipeResponse = function(ctx) {
 			this.buildDeferred()
 			this.headers = headers
 			this.statusCode = statusCode
-			
 			return
 		}
 
@@ -111,7 +110,6 @@ var XPipeResponse = function(ctx) {
 	
 	this.close= function() {
 	
-		//sys.debug("xpipe close "+this.pipeId)
 			
 		if(!this.isTop()) {
 			this.done = true
@@ -120,36 +118,48 @@ var XPipeResponse = function(ctx) {
 			// we're at the top, but there are headers queued from when we werent
 			this.despool()
 		}
+		
+		//sys.debug("xpipe close")
+		this.response.close()
 	
 		var pipe = this.ctx.pipe
-			
-		this.response.close()
 		pipe.seq++
 		
 		// look for deferred to fire.
-		while(pipe.deferred.length && pipe.deferred[0].seq == pipe.seq)
+		if(pipe.deferred.length && pipe.deferred[0].seq == pipe.seq)
 		{
-			sys.debug("follow up rseq to send")
-			pipe.deferred.shift().despool()
-			pipe.seq++
+			var next = pipe.deferred.shift()
+			//sys.debug("follow up rseq")
+			next.response.despool()
+			/*
+			process.nextTick(new function(rn) {
+				return function() {
+					rn.despool()
+				}
+			}(next.response))
+			*/
 		}
 	}
 
 	this.isTop = function()
 	{
-		//sys.debug("is top "+this.ctx.seq+" "+this.ctx.pipe.seq+"\n")
+		//sys.debug("is top "+this.ctx.seq+" "+this.ctx.pipe.seq)
 		return this.ctx.seq == this.ctx.pipe.seq
 	}
 
 	this.despool = function()
 	{
-		//sys.debug("DESPOOL")
-		this.sendHeaders(this.statusCode,this.headers)
-		this.headers = null
+		sys.debug("DESPOOL "+this.ctx.ticket+" "+this.chunks.length)
+		this.sendHeader(this.statusCode,this.headers)
+		delete this.headers
 		
 		var response = this.response
 		for(var i = 0; i < this.chunks.length; ++i)
-			response.write.call(response,this.chunks[i],this.encodings[i])
+			response.write(this.chunks[i],this.encodings[i])
+
+		if(this["done"]) {
+			this.close()
+		}
 	}
 	
 	this.buildDeferred = function()

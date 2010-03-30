@@ -8,7 +8,7 @@ var FileSystemFilter = function(base,urlPrefix)
 
 	this.execute = function(ctx) {
 
-		sys.debug("FS EXEC")
+		sys.debug("FS EXEC "+ctx.ticket)
 		
 		// get url
 		var url = this.parseUrl(ctx).pathname
@@ -38,7 +38,7 @@ var FileSystemFilter = function(base,urlPrefix)
 				// write file contents as response
 				
 				var response = ctx.response
-				response.sendHeader(200,{"Content-Length": data.length})
+				response.sendHeader(200,{"Content-Length": data.length-1})
 				response.write(data)
 				response.close()
 			
