@@ -10,7 +10,7 @@ var program = process.argv[2]
 
 // find and load common files
 
-// build generator to recurse subdirs
+// build generator to recurse subdirs to target
 var common = "common.js", start = 0
 var commonGenerator = function() {
 
@@ -47,10 +47,11 @@ try {
 	expected = fs.readFileSync(program.replace(".js",".txt"))
 } catch (ex) {}
 
-ignoreExpected = false
-
 // if we have expected output
 if(expected) {
+
+	CHECK = { puts: true, print: true, debug: false, log: false }
+	LOGGING=false
 
 	// place through expected buffer
 	var start = 0
@@ -58,39 +59,40 @@ if(expected) {
 	// capture output functions 
 	var stock = { puts: sys.puts, print: sys.print, debug: sys.debug, log: sys.log }
 
-	// disable-able assert
-	var assert_equal = function(actual,expect) { 
-		if(!ignoreExpected) 
-			assert.equal(actual,expect) 
-	}
-	
 	// redefine output functions to check against expected buffer
 	sys.puts = function(str) {
-		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
-		assert_equal(actual,expect)
-		start += len
 		stock.puts(str)
+		if(LOGGING) return
+		if(!CHECK.puts) return
+		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
+		assert.equal(actual,expect)
+		start += len
 	}
 
 	sys.print = function(str) {
-		var actual = str, len = actual.length, expect = expected.substr(start,len)
-		assert_equal(actual,expect)
-		start += len
 		stock.print(str)
+		if(!CHECK.print) return
+		var actual = str, len = actual.length, expect = expected.substr(start,len)
+		assert.equal(actual,expect)
+		start += len
 	}
 
 	sys.debug = function(str) {
-		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
-		assert_equal(actual,expect)
-		start += len
 		stock.debug(str)
+		if(!CHECK.debug) return
+		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
+		assert.equal(actual,expect)
+		start += len
 	}
 
 	sys.log = function(str) {
-		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
-		assert_equal(actual,expect)
-		start += len
+		LOGGING=true
 		stock.log(str)
+		LOGGING=false
+		if(!CHECK.log) return
+		var actual = str + "\n", len = actual.length, expect = expected.substr(start,len)
+		assert.equal(actual,expect)
+		start += len
 	}
 }
 

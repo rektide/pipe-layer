@@ -9,8 +9,8 @@
 2 x-pipe: 1
 2 x-seq: 3
 2 connection: close
-1 200 /pipe/resource.txt?delay=7
+1 200 /pipe/resource.txt?delay=4
 1 content-length: 31
 1 x-pipe: 1
-1 x-seq: 3
+1 x-seq: 2
 1 connection: close
