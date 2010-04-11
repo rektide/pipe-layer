@@ -65,9 +65,9 @@ var reverseChain = new Chain([
 	new SessionCookieFilter(),
 	new UserStoreFilter(userStore), 
 	new XPipeFilter(),
-	new ReverseHttpFilter(userStore,userDomainMatch),
+	//new ReverseHttpFilter(userStore,userDomainMatch),
 	new DelayFilter(333),
-	new FileSystemFilter("src/tests/nodejs","/pipe")
+	new FileSystemFilter("src/tests/pipe","/pipe")
 ])
 
 // chain for a router pointing to different contexts

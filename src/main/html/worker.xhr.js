@@ -23,6 +23,8 @@ onconnect = function(e) {
 	port._seq = 1
 	port._seqTicket = 1
 	port._deferred = []
+	port._rdeferred = []
+	port._in_flight = false
 	clientDb[pipe] = port
 }
 
@@ -155,7 +157,8 @@ var xhrHandler = function(e,h) {
 
 
 	// initial XHR handle call, load basic datums
-	var seq = headers["X-Seq"] || headers["x-seq"]
+	var seq = headers["X-Seq"] || headers["x-seq"], 
+		rseq = headers["X-RSeq"] || headers["x-rseq"]
 	if(this.readyState == 2 || this._headersSent == undefined) {
 
 		// load status
@@ -163,8 +166,8 @@ var xhrHandler = function(e,h) {
 		msg.statusText = this.statusText
 
 		// load sequence
-		msg.seq = seq
-		msg.rseq = headers["X-RSeq"] || headers["x-rseq"]
+		msg.seq = Number(seq) || seq
+		msg.rseq = Number(rseq) || rseq
 
 		// load headers
 		msg.headers = headers
@@ -176,59 +179,84 @@ var xhrHandler = function(e,h) {
 	// load state
 	msg.readyState = this.readyState // 3 may be around for a while
 
-	// read in body content
-	var bodyLen = this._bodyLen || 0
-	msg.responseDelta = this.responseText.substr(bodyLen)
-	this._bodyLen = this.responseText.length
+	// read in body content for seq
+	if(seq) {
+		var bodyLen = this._bodyLen || 0
+		msg.responseDelta = this.responseText.substr(bodyLen)
+	}
 
-	// load responseXML
+	// final stage
 	if(this.readyState == 4) {
 
+		// load responseXML
 		try {
 			var x = this.responseXML
 			if(x)
 				msg.responseXML = x
 		} catch (err) {}
+
+		if(rseq)
+			msg.responseDelta = this.responseText
 	}
 
+	
 	// check whether this message is fresh, or should defer
-	if(seq == port._seq) {
+	var fresh = false
+	if(seq == port._seq) 
+		fresh = true
+	else if(rseq = port._rseq && !port._in_flight && msg.readyState == 4)
+		fresh = true
+	var any_fresh = fresh == true
 
-		// we're fresh
-		var fresh = true
-		
-		// while fresh, despool, check if next is fresh
-		while(fresh) {
+	// we're about to send this message, so update how far along we are sending the responseText's contents
+	if(seq && fresh)
+		this._bodyLen = this.responseText.length
 
-			// send
-			port.postMessage(msg)
-			// tombstone; make sure no one tries to resend this message
-			msg._sent = true
+	// while fresh, despool, check if next is fresh
+	while(fresh) {
 
-			// message has been sent, assume nothing more to send
-			fresh = false
+		var uname = rseq ? "_rseq" : "_seq"
 
-			// is this xhr-message in its final state, nothing more to send?
-			if(msg.readyState == 4) {
+		// send
+		port.postMessage(msg)
+		// tombstone; make sure no one tries to resend this message
+		msg._sent = true
 
-				// go to next message
-				++port._seq
+		// message has been sent, assume nothing more to send
+		fresh = false
 
-				// check deferred's top to see if it is the next message
-				if(port._deferred.length && port._deferred[0].seq == port._seq) {
+		// is this xhr-message in its final state, nothing more to send?
+		var final = msg.readyState == 4
+		port._in_flight = !final
+		if(final) {
+			
+			// go to next message
+			++port[uname]
 
-					// deferred is next!  aka fresh!
-					fresh = true
-					// load in message for send
-					msg = port._deferred.shift()
-				}
+			// check rdeferred's top to see if its ready to send
+			if(port._rdeferred.length && port._rdeferred[0].rseq == port._rseq && port._rdeferred[0].readyState == 4) {
+				
+				fresh = true
+				msg = port._rdeferred.shift()
+				
+			}
+			// check deferred's top to see if it is the next message
+			else if(port._deferred.length && port._deferred[0].seq == port._seq) {
+
+				// deferred is next!  aka fresh!
+				fresh = true
+				// load in message for send
+				msg = port._deferred.shift()
 			}
 		}
 	}
-	else if(!continuation) {
+	if(!continuation && !any_fresh) {
+
+		var compare = rseq ? function(a,b) { return a.rseq - b.rseq } : function(a,b) { return a.seq - b.seq }, 
+			deferred = rseq ? port._rdeferred : port._deferred
 
 		// havent already queued/deferred a message, and we're further down the queue
-		orderedInsert(port._deferred, msg, function(a,b) { return a.seq - b.seq })
+		orderedInsert(deferred, msg, compare)
 		// since we're deferring, build any future xhr state upon this existing message
 		this._message = msg
 	} 
