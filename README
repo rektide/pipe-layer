@@ -102,3 +102,45 @@ consumed doing chunked responses.
 This is the core use case for pipe layer.  Rather than consuming a physical connection for a SSE / comet connection,
 "push" is a part of the transport, and these messages will simply be interleaven along with other pipe messages.  This
 permits dozens or hundreds of simultaneous push connections to exist at once.
+
+
+# Implementation #
+
+A page wishing to use pipe layer loads the XHR proxy pipe.xhr.js.  Any future XHR requests the page creates will be 
+sent to the SharedWorker worker.xhr.js.  The request will be furnished with identifying information (((an X-Pipe and 
+X-Seq))) and sent to the server.
+
+The server is implemented in node.js.  The runtime is assembled by runtime.js, which loads dependencies and constructs
+the server environment programmatically.  The core construct for handling http requests is an asychronized
+implementation of the Common's Chain; a chain has filters that get run one by one until one filter designates that it
+has "handled" the request.  router1 is the primary chain, and comprises a single filter; a path filter to route the
+request to a new chain.  
+
+Lets dive into some of the filters:
+
+## FileSystemFilter ##
+
+This filter serves files out of the file system.  The first parameter is the folder to operate from, and the second
+parameter is a prefix to strip from the request path.
+
+## DelayFilter ##
+
+This filter delays the request processing, either by a default amount of time, or via a "delay" parameter in the query
+string.  Used for concurrency unit tests.
+
+## SessionCookieFilter ##
+
+Sets cookie value in the context.  Builds a cookie and preps set-cookie if none exists.
+
+## UserStoreFilter ##
+
+Uses cookie to retrieve or attach a user scoped context to the context.
+
+## XPipeFilter ##
+
+The Pipe Layer router.  Strips response off context and puts it into a users responses queue, attached a proxy response
+object in its place.
+
+## ReverseFilter ##
+
+Proxying filter that relays the incoming request to a pipe.
