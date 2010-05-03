@@ -1,0 +1,32 @@
+Pipe Layer
+bidirectional asynchronous http transport
+=====
+
+Pipe Layer is a a bidirectional asynchronous transport for the web.
+
+  bidirectional:
+      adj: reactive or functioning or allowing movement in two
+           usually opposite directions [ant: {unidirectional}]
+
+  asynchronous:
+      adj: not synchronous; not occurring or existing at the same time
+           or having the same period or phase [ant: {synchronal},
+
+
+With regards to implementation, Pipe Layer is an extension to HTTP that decouples the conventional request / response
+action of the transport, permitting HTTP to be used instead as a messaging channel.  By adorning all outgoing requests
+with a unique identifier (((an X-Pipe and X-Seq header))) and maintaining a queue of outstanding requests, the server
+may reply to any request it wishes (((out of order, tagging each response with its identifier))), or may send a message 
+for which there was no originating request (((this time tagging the message with an X-Pipe and X-RSeq identifier))),
+thereby fulfilling the stated goals of asynchronity and bidirectionality.
+
+In the browser, connection to the server is delegated to a SharedWorker.  XHR is proxied, and send to the SharedWorker,
+who attaches an identifier and submits the request to the server.  The SharedWorker looks at each response, and routes
+the response to the appropriate XHR (((which, being out of order, may not be the originating XHR))).
+
+
+Conceptually, Pipe Layer uses a model akin to SCTP; it is a message based multi-streaming transport.  Whereas http is
+strictly request / response, sctp and the pipe layer transports are conceptually about messages.  Whereas http relies on
+pipelining and multiple connections for parallel operations, pipe layer and sctp add channel semantics to the transport
+to allow multiple simultaenous connections over a single physical connection.  
+
