@@ -1,6 +1,8 @@
-Pipe Layer
+# Pipe Layer #
 bidirectional asynchronous http transport
-=====
+-----
+
+# Essence #
 
 Pipe Layer is a a bidirectional asynchronous transport for the web.
 
@@ -12,6 +14,36 @@ Pipe Layer is a a bidirectional asynchronous transport for the web.
       adj: not synchronous; not occurring or existing at the same time
            or having the same period or phase [ant: {synchronal},
 
+
+What does this mean in practice?
+
+Jamie Lokier, April 12, 2009, on the HyBi mailing list, wrote his vision of what an asynchronous HTTP transport would
+mean (((and happens to encompass bidirectional as well))).  The outline he provided is pure gold:
+
+  What I think would be ideal, and it's been mentioned already as
+  "asynchronous HTTP", is:
+
+	HTTP or simplified-HTTP message headers and body.
+	Bidirectional - either side can send requests and responses.
+	Channel id attached to each message.
+	Chunked encoding, with channel id attached to each chunk.
+	Per channel flow control exactly like BEEP over TCP profile.
+	Request/response id attached to each message.
+	Request/response id matches responses out of order to requests.
+	Pure messages with no response allowed, using "no-response" r/r id.
+	All the above features are optional.
+
+  - http://www.ietf.org/mail-archive/web/hybi/current/msg00114.html
+
+Pipe layer is an attempt to implement this core vision.
+
+Conceptually, Pipe Layer and async http uses a model akin to SCTP; that of a message based multi-streaming transport.
+Whereas http is strictly request / response, sctp and the pipe layer transports are conceptually about messages.
+Whereas http relies on pipelining and multiple connections for parallel operations, pipe layer and sctp add channel
+semantics to the transport to allow multiple simultaneous connections over a single physical connection.
+
+
+# High Level Implementation #
 
 With regards to implementation, Pipe Layer is an extension to HTTP that decouples the conventional request / response
 action of the transport, permitting HTTP to be used instead as a messaging channel.  By adorning all outgoing requests
@@ -25,8 +57,48 @@ who attaches an identifier and submits the request to the server.  The SharedWor
 the response to the appropriate XHR (((which, being out of order, may not be the originating XHR))).
 
 
-Conceptually, Pipe Layer uses a model akin to SCTP; it is a message based multi-streaming transport.  Whereas http is
-strictly request / response, sctp and the pipe layer transports are conceptually about messages.  Whereas http relies on
-pipelining and multiple connections for parallel operations, pipe layer and sctp add channel semantics to the transport
-to allow multiple simultaenous connections over a single physical connection.  
+# Benefit #
 
+Lets return to Jamie Lokier's async http post:
+
+	That provides the message/event protocol some people are asking for,
+	and also provides the request/response protocol some people are asking
+	for, does both bidirectionally, and over a single socket, and with
+	multiple applications sharing the same socket if they want.
+
+Asynchronous http conveys the following advantages:
+
+ +  It is still HTTP.
+ +  Multiple interleaved channels over a single connection.
+ +  Bidirectional over a single connection.
+ +  Eventing behavior; server can assert data.
+ +  Radically less restrictive pipelining behavior.
+ +  Pipeline stalls can be avoided by serving replies on alternate physical connections.
+
+The pipe layer implementation has the following properties:
+
+ +  Extends HTTP in a compliant fashion.
+ +  100% JavaScript implementation; node.js back-end.
+ +  Uses a SharedWorker (((this standard is not available on all browsers))).
+ +  No start-up handshake required.
+
+The pipe layer implementation presently lacks the following async features:
+
+ +  Chunked encoding transfers block the pipe, no multiplexing.
+ +  No flow control implemented.
+ +  No no-response r/r; server has to send 204.
+
+
+# Use Cases #
+
+## Speed ##
+
+If a server needs some time to process a request, multi-streaming prevents this request from causing a pipe
+stall.  Note, chunked responses will block that pipe, which only becomes a problem if all physical connections are
+consumed doing chunked responses. 
+
+## Server sent events / comet ##
+
+This is the core use case for pipe layer.  Rather than consuming a physical connection for a SSE / comet connection,
+"push" is a part of the transport, and these messages will simply be interleaven along with other pipe messages.  This
+permits dozens or hundreds of simultaneous push connections to exist at once.
